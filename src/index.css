@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Typography tokens
+  -----------------
+  Headings:  Uncut Sans Semibold, tracking -0.03em  → font-sans font-semibold tracking-heading
+  Body:      Uncut Sans Book                        → font-sans
+  Mono:      Geist Mono Regular                     → font-mono
+
+  To swap fonts, update the fontFamily config in tailwind.config.ts
+  or load @font-face rules below.
+*/
+
+/* If you have local Uncut Sans files, uncomment and adjust paths:
+@font-face {
+  font-family: 'Uncut Sans';
+  src: url('/fonts/UncutSans-Book.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Uncut Sans';
+  src: url('/fonts/UncutSans-Semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+*/
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-brand-off-white text-brand-black font-sans;
+  }
+
+  :focus-visible {
+    outline: 2px solid #FFCE00;
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .tracking-heading {
+    letter-spacing: -0.03em;
+  }
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+/* Custom range slider */
+.slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #FFCE00;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.slider-input::-webkit-slider-thumb:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transform: scale(1.1);
+}
+
+.slider-input::-webkit-slider-thumb:active {
+  transform: scale(0.95);
+}
+
+.slider-input::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #FFCE00;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+.slider-input::-webkit-slider-runnable-track {
+  height: 8px;
+  background: transparent;
+}
+
+.slider-input::-moz-range-track {
+  height: 8px;
+  background: transparent;
+}
+
+/* Ensure dropdown options are readable */
+select option {
+  color: #232323;
+  background-color: #fff;
+  padding: 8px 12px;
+}
