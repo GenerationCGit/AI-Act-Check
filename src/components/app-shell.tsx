@@ -1,7 +1,5 @@
-import { type ReactNode, useEffect, useState } from "react";
+import type { ReactNode } from "react";
 import type { AppState } from "../lib/types";
-import { getSubmissionCount } from "../lib/submission-store";
-import { exportSubmissionsToExcel } from "../lib/excel-export";
 
 interface AppShellProps {
   children: ReactNode;
@@ -11,12 +9,6 @@ interface AppShellProps {
 export function AppShell({ children, appState }: AppShellProps) {
   const isLanding = appState === "landing";
   const isLoading = appState === "loading";
-
-  const [submissionCount, setSubmissionCount] = useState(0);
-
-  useEffect(() => {
-    setSubmissionCount(getSubmissionCount());
-  }, [appState]);
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-brand-off-white">
@@ -28,24 +20,6 @@ export function AppShell({ children, appState }: AppShellProps) {
           className="h-7 md:h-8 w-auto"
         />
       </div>
-
-      {/* Export button — top-right, only visible when submissions exist */}
-      {submissionCount > 0 && (
-        <div className="fixed top-5 right-5 md:top-7 md:right-8 z-50">
-          <button
-            onClick={exportSubmissionsToExcel}
-            title={`${submissionCount} inzending${submissionCount !== 1 ? "en" : ""} exporteren`}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white border border-brand-black/[0.1] shadow-sm
-              font-mono text-[11px] text-brand-black/60 hover:text-brand-black hover:border-brand-black/20
-              transition-all duration-200"
-          >
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
-              <path d="M8 2v8M5 7l3 3 3-3M3 12h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            Export ({submissionCount})
-          </button>
-        </div>
-      )}
 
       {/* Scrollable content area */}
       <div className="absolute inset-0 z-10 overflow-y-auto">
