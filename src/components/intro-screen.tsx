@@ -5,107 +5,57 @@ interface IntroScreenProps {
   onStart: () => void;
 }
 
-function Divider() {
+function Card({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className="max-w-3xl mx-auto px-6 md:px-10">
-      <div className="h-px bg-brand-black/[0.06]" />
+    <div className={cn("rounded-2xl border border-brand-black/[0.07] bg-white p-5 md:p-6", className)}>
+      {children}
     </div>
   );
 }
 
-function Bullet({ children }: { children: React.ReactNode }) {
+function SectionLabel({ children, light = false }: { children: React.ReactNode; light?: boolean }) {
   return (
-    <li className="flex items-start gap-2.5">
-      <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-brand-yellow mt-[7px]" />
-      <span className="font-sans text-[14px] text-brand-black/75 leading-relaxed">
+    <span className={cn("font-mono text-[10px] uppercase tracking-widest mb-3 block", light ? "text-white/50" : "text-brand-black/60")}>
+      {children}
+    </span>
+  );
+}
+
+function Bullet({ children, light = false }: { children: React.ReactNode; light?: boolean }) {
+  return (
+    <li className="flex items-start gap-2">
+      <span className="flex-shrink-0 w-1.5 h-1.5 rounded-full bg-brand-yellow mt-[5px]" />
+      <span className={cn("font-sans text-[13px] leading-snug", light ? "text-white/70" : "text-brand-black/70")}>
         {children}
       </span>
     </li>
   );
 }
 
-function Emphasis({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="font-sans text-[14px] text-brand-black/85 font-semibold mt-4">
-      {children}
-    </p>
-  );
-}
-
-const RISK_LEVELS: {
-  label: string;
-  body: React.ReactNode;
-  accent: string;
-  tag: string;
-}[] = [
+const RISK_LEVELS = [
   {
     label: "Laag risico",
-    body: "De meeste simpele AI-toepassingen vallen hier onder. Denk aan interne tools of automatisering zonder impact op mensen.",
-    accent: "border-emerald-200/60 bg-emerald-50/30",
+    body: "Interne tools of automatisering zonder directe impact op mensen.",
     tag: "text-emerald-700 bg-emerald-50 border-emerald-200",
+    card: "border-emerald-100 bg-emerald-50/20",
   },
   {
     label: "Beperkt risico",
-    body: "Bijvoorbeeld chatbots of AI-content. Hier geldt vooral: wees transparant. Mensen moeten weten dat ze met AI te maken hebben.",
-    accent: "border-amber-200/60 bg-amber-50/30",
+    body: "Chatbots of AI-content. Transparantie richting gebruikers is vereist.",
     tag: "text-amber-700 bg-amber-50 border-amber-200",
+    card: "border-amber-100 bg-amber-50/20",
   },
   {
     label: "Hoog risico",
-    body: (
-      <>
-        <p className="mb-2.5">Dit zijn systemen die impact hebben op belangrijke delen van iemands leven.</p>
-        <ul className="space-y-1 mb-2.5 pl-0.5">
-          <li className="flex items-start gap-2">
-            <span className="text-brand-black/50 mt-px">—</span>
-            <span>AI in recruitment (cv screening)</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-brand-black/50 mt-px">—</span>
-            <span>Kredietbeoordeling</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-brand-black/50 mt-px">—</span>
-            <span>Zorgsystemen</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-brand-black/50 mt-px">—</span>
-            <span>Overheidsbesluiten</span>
-          </li>
-        </ul>
-        <p className="font-semibold text-brand-black/85">Veel 'normale' use cases vallen hier sneller onder dan je denkt.</p>
-      </>
-    ),
-    accent: "border-red-200/60 bg-red-50/20",
+    body: "AI in recruitment, zorg, krediet of overheidsbesluiten.",
     tag: "text-red-700 bg-red-50 border-red-200",
+    card: "border-red-100 bg-red-50/20",
   },
   {
-    label: "Verboden toepassingen",
-    body: (
-      <>
-        <p className="mb-2.5">AI die fundamentele rechten schendt of mensen manipuleert.</p>
-        <ul className="space-y-1 pl-0.5">
-          <li className="flex items-start gap-2">
-            <span className="text-brand-black/50 mt-px">—</span>
-            <span>Mensen onbewust beïnvloeden</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-brand-black/50 mt-px">—</span>
-            <span>Social scoring</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-brand-black/50 mt-px">—</span>
-            <span>Gezichtsdata van internet verzamelen</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-brand-black/50 mt-px">—</span>
-            <span>Emoties meten op werk of school</span>
-          </li>
-        </ul>
-      </>
-    ),
-    accent: "border-red-300/60 bg-red-50/40",
+    label: "Verboden",
+    body: "Social scoring, biometrische surveillance of gedragsmanipulatie.",
     tag: "text-red-800 bg-red-100 border-red-300",
+    card: "border-red-200 bg-red-50/30",
   },
 ];
 
@@ -116,223 +66,150 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
+      className="max-w-5xl mx-auto px-5 md:px-8 pt-20 md:pt-28 pb-12"
     >
       {/* ── Hero ── */}
-      <div className="max-w-3xl mx-auto px-6 md:px-10 pt-24 md:pt-32 pb-16 md:pb-20 text-center">
+      <div className="mb-8">
         <motion.span
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.4 }}
-          className="inline-block font-mono text-xs uppercase tracking-widest text-brand-black/60 mb-5"
+          className="font-mono text-[11px] uppercase tracking-widest text-brand-black/60 mb-4 block"
         >
           DOE DE CHECK
         </motion.span>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.5 }}
-          className="font-sans font-semibold text-4xl md:text-6xl tracking-heading text-brand-black leading-[1.1] mb-5"
-        >
-          Valt jouw AI onder de EU AI Act?
-        </motion.h1>
-
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25, duration: 0.4 }}
-          className="font-sans text-base md:text-lg text-brand-black/75 max-w-[580px] mx-auto leading-relaxed"
-        >
-          Veel bedrijven denken dat de EU AI Act alleen geldt voor grote techbedrijven.
-          In werkelijkheid geldt dit voor bijna elke organisatie die AI gebruikt, vaak zonder dat ze het doorhebben.
-        </motion.p>
-      </div>
-
-      <Divider />
-
-      {/* ── Section 1: Risk levels ── */}
-      <div className="max-w-3xl mx-auto px-6 md:px-10 py-12 md:py-16">
-        <span className="font-mono text-[11px] uppercase tracking-widest text-brand-black/60 mb-3 block">
-          RISICONIVEAUS
-        </span>
-        <h2 className="font-sans font-semibold text-2xl md:text-3xl tracking-heading text-brand-black mb-2 leading-tight">
-          Hoe de EU AI Act naar AI kijkt
-        </h2>
-        <p className="font-sans text-[15px] text-brand-black/70 mb-8 max-w-[580px] leading-relaxed">
-          De EU AI Act werkt niet met één set regels voor alle AI. Het kijkt naar het risico dat jouw toepassing vormt voor mensen.
-        </p>
-
-        <div className="flex flex-col gap-3">
-          {RISK_LEVELS.map((level) => (
-            <div
-              key={level.label}
-              className={cn("rounded-xl border p-5", level.accent)}
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5">
+          <div>
+            <motion.h1
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15, duration: 0.5 }}
+              className="font-sans font-semibold text-3xl md:text-5xl tracking-heading text-brand-black leading-[1.1] mb-3"
             >
-              <span
-                className={cn(
-                  "inline-block font-mono text-[11px] uppercase tracking-wider px-2.5 py-0.5 rounded-full border mb-2.5",
-                  level.tag
-                )}
-              >
-                {level.label}
-              </span>
-              <div className="font-sans text-[14px] text-brand-black/75 leading-relaxed">
-                {level.body}
-              </div>
-            </div>
-          ))}
+              Valt jouw AI onder<br className="hidden md:block" /> de EU AI Act?
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.25, duration: 0.4 }}
+              className="font-sans text-[15px] text-brand-black/70 max-w-[480px] leading-relaxed"
+            >
+              Veel organisaties vallen onder de wet, vaak zonder dat ze het weten.
+              Doe de check en weet waar je staat.
+            </motion.p>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.4 }}
+            className="flex flex-col items-start md:items-end gap-1.5 flex-shrink-0"
+          >
+            <button
+              type="button"
+              onClick={onStart}
+              className="px-8 py-3.5 rounded-xl bg-brand-yellow text-brand-black font-semibold text-sm
+                hover:bg-brand-yellow/90 active:scale-[0.98] transition-all duration-200
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-yellow focus-visible:ring-offset-4
+                shadow-[0_1px_2px_rgba(0,0,0,0.06)] whitespace-nowrap"
+            >
+              Start de check →
+            </button>
+            <span className="font-mono text-[10px] text-brand-black/50">Duurt minder dan 5 minuten</span>
+          </motion.div>
         </div>
       </div>
 
-      <Divider />
+      {/* ── Bento grid ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35, duration: 0.5 }}
+        className="grid grid-cols-1 md:grid-cols-3 gap-3"
+      >
+        {/* Risiconiveaus — spans 2 cols */}
+        <Card className="md:col-span-2">
+          <SectionLabel>Risiconiveaus</SectionLabel>
+          <h2 className="font-sans font-semibold text-[15px] text-brand-black tracking-heading mb-4">
+            Hoe de EU AI Act naar AI kijkt
+          </h2>
+          <div className="grid grid-cols-2 gap-2">
+            {RISK_LEVELS.map((level) => (
+              <div key={level.label} className={cn("rounded-xl border p-3.5", level.card)}>
+                <span className={cn("inline-block font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full border mb-2", level.tag)}>
+                  {level.label}
+                </span>
+                <p className="font-sans text-[12px] text-brand-black/70 leading-snug">{level.body}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
 
-      {/* ── Section 2: Why this matters now ── */}
-      <div className="max-w-3xl mx-auto px-6 md:px-10 py-12 md:py-16">
-        <span className="font-mono text-[11px] uppercase tracking-widest text-brand-black/60 mb-3 block">
-          URGENTIE
-        </span>
-        <h2 className="font-sans font-semibold text-2xl md:text-3xl tracking-heading text-brand-black mb-2 leading-tight">
-          Waarom dit belangrijk is (nu al)
-        </h2>
-        <p className="font-sans text-[15px] text-brand-black/70 mb-6 max-w-[580px] leading-relaxed">
-          AI maakt het extreem makkelijk om data te gebruiken, te combineren en te automatiseren. Daardoor nemen risico's snel toe, vaak zonder dat organisaties dit doorhebben.
-        </p>
+        {/* Deadline — dark card */}
+        <Card className="bg-brand-black border-brand-black flex flex-col justify-between min-h-[200px]">
+          <div>
+            <SectionLabel light>Deadline</SectionLabel>
+            <p className="font-sans font-semibold text-5xl text-brand-yellow tracking-heading leading-none mb-1">2 aug</p>
+            <p className="font-sans font-semibold text-5xl text-white tracking-heading leading-none mb-4">2026</p>
+            <p className="font-sans text-[13px] text-white/70 leading-relaxed">
+              Vanaf dan gelden de zwaarste regels voor high-risk AI. Systemen moeten aantoonbaar voldoen vóór gebruik.
+            </p>
+          </div>
+          <p className="font-sans text-[12px] text-brand-yellow font-semibold mt-4">
+            Dit is geen advies, dit wordt verplicht.
+          </p>
+        </Card>
 
-        <ul className="space-y-2.5 mb-4">
-          <Bullet>Data wordt sneller en op grotere schaal gebruikt</Bullet>
-          <Bullet>Je hebt minder zicht op wat er precies gebeurt</Bullet>
-          <Bullet>Tools en AI worden vaak zonder duidelijke regels ingezet</Bullet>
-          <Bullet>Niemand weet precies waar alle data zit</Bullet>
-        </ul>
+        {/* Urgentie */}
+        <Card>
+          <SectionLabel>Urgentie</SectionLabel>
+          <h2 className="font-sans font-semibold text-[15px] text-brand-black tracking-heading mb-3">
+            Waarom nu al?
+          </h2>
+          <ul className="space-y-2">
+            <Bullet>Data wordt sneller en op grotere schaal gebruikt</Bullet>
+            <Bullet>Je hebt minder zicht op wat er precies gebeurt</Bullet>
+            <Bullet>Tools worden ingezet zonder duidelijke regels</Bullet>
+            <Bullet>Niemand weet precies waar alle data zit</Bullet>
+          </ul>
+        </Card>
 
-        <Emphasis>Zonder duidelijke governance verlies je controle.</Emphasis>
-      </div>
+        {/* Consequenties */}
+        <Card>
+          <SectionLabel>Consequenties</SectionLabel>
+          <h2 className="font-sans font-semibold text-[15px] text-brand-black tracking-heading mb-3">
+            Wat als je niets doet?
+          </h2>
+          <ul className="space-y-2">
+            <Bullet>Tot €35M of 7% omzet bij zwaarste overtredingen</Bullet>
+            <Bullet>Tot €15M of 3% bij high-risk zonder maatregelen</Bullet>
+            <Bullet>Systemen kunnen verboden of stopgezet worden</Bullet>
+            <Bullet>Vergelijkbaar met hoe GDPR wordt gehandhaafd</Bullet>
+          </ul>
+        </Card>
 
-      <Divider />
-
-      {/* ── Section 3: August 2, 2026 ── */}
-      <div className="max-w-3xl mx-auto px-6 md:px-10 py-12 md:py-16">
-        <span className="font-mono text-[11px] uppercase tracking-widest text-brand-black/60 mb-3 block">
-          DEADLINE
-        </span>
-        <h2 className="font-sans font-semibold text-2xl md:text-3xl tracking-heading text-brand-black mb-2 leading-tight">
-          Wat verandert er op 2 augustus 2026?
-        </h2>
-        <p className="font-sans text-[15px] text-brand-black/70 mb-2 max-w-[580px] leading-relaxed">
-          Dit is het moment waarop de zwaarste regels voor high-risk AI echt gaan gelden.
-        </p>
-        <p className="font-sans text-[15px] text-brand-black/70 mb-6 max-w-[580px] leading-relaxed">
-          Systemen die als 'hoog risico' worden gezien, moeten vanaf dat moment aan strenge eisen voldoen voordat ze gebruikt mogen worden.
-        </p>
-
-        <ul className="space-y-2.5 mb-4">
-          <Bullet>Je moet risico's actief beheren</Bullet>
-          <Bullet>Je moet kunnen uitleggen hoe je systeem werkt</Bullet>
-          <Bullet>Je moet bias en datakwaliteit controleren</Bullet>
-          <Bullet>Je moet menselijke controle inbouwen</Bullet>
-          <Bullet>Je moet documentatie en logging op orde hebben</Bullet>
-        </ul>
-
-        <Emphasis>Dit is geen advies, dit wordt verplicht.</Emphasis>
-      </div>
-
-      <Divider />
-
-      {/* ── Section 4: You're a "user" sooner than you think ── */}
-      <div className="max-w-3xl mx-auto px-6 md:px-10 py-12 md:py-16">
-        <span className="font-mono text-[11px] uppercase tracking-widest text-brand-black/60 mb-3 block">
-          GOED OM TE WETEN
-        </span>
-        <h2 className="font-sans font-semibold text-2xl md:text-3xl tracking-heading text-brand-black mb-2 leading-tight">
-          Je bent sneller 'gebruiker' dan je denkt
-        </h2>
-        <p className="font-sans text-[15px] text-brand-black/70 mb-6 max-w-[580px] leading-relaxed">
-          Zodra je AI-tools gebruikt in je werk (zoals Copilot, ChatGPT of een intern model), ben je volgens de wet al een 'exploitant' en heb je verplichtingen.
-        </p>
-
-        <ul className="space-y-2.5">
-          <Bullet>Je moet je personeel trainen (AI literacy)</Bullet>
-          <Bullet>Je moet weten wat de tool doet met data</Bullet>
-          <Bullet>Je moet regels van de aanbieder volgen</Bullet>
-        </ul>
-      </div>
-
-      <Divider />
-
-      {/* ── Section 5: What if you do nothing ── */}
-      <div className="max-w-3xl mx-auto px-6 md:px-10 py-12 md:py-16">
-        <span className="font-mono text-[11px] uppercase tracking-widest text-brand-black/60 mb-3 block">
-          CONSEQUENTIES
-        </span>
-        <h2 className="font-sans font-semibold text-2xl md:text-3xl tracking-heading text-brand-black mb-2 leading-tight">
-          Wat als je niets doet?
-        </h2>
-        <p className="font-sans text-[15px] text-brand-black/70 mb-6 max-w-[580px] leading-relaxed">
-          De EU AI Act is geen vrijblijvende richtlijn. Er staan echte consequenties op het niet naleven van de regels.
-        </p>
-
-        <ul className="space-y-2.5 mb-4">
-          <Bullet>Tot €35 miljoen of 7% van je wereldwijde omzet (zwaarste overtredingen)</Bullet>
-          <Bullet>Tot €15 miljoen of 3% (high-risk zonder juiste maatregelen)</Bullet>
-          <Bullet>Systemen kunnen verboden of stopgezet worden</Bullet>
-          <Bullet>Toezichthouders kunnen audits uitvoeren</Bullet>
-        </ul>
-
-        <Emphasis>Dit is vergelijkbaar met hoe GDPR wordt gehandhaafd, maar dan voor AI.</Emphasis>
-      </div>
-
-      <Divider />
-
-      {/* ── Section 6: Why this check ── */}
-      <div className="max-w-3xl mx-auto px-6 md:px-10 py-12 md:py-16">
-        <span className="font-mono text-[11px] uppercase tracking-widest text-brand-black/60 mb-3 block">
-          DEZE CHECK
-        </span>
-        <h2 className="font-sans font-semibold text-2xl md:text-3xl tracking-heading text-brand-black mb-2 leading-tight">
-          Waarom deze check?
-        </h2>
-        <p className="font-sans text-[15px] text-brand-black/70 mb-4 max-w-[580px] leading-relaxed">
-          Veel organisaties gebruiken AI in processen die onder high-risk vallen zonder dat ze het weten. Deze check helpt je om daar snel inzicht in te krijgen.
-        </p>
-        <p className="font-sans text-[15px] text-brand-black/85 font-semibold max-w-[580px]">
-          Als je niet zeker weet waar je onder valt, zit je waarschijnlijk dichter bij 'high-risk' dan je denkt.
-        </p>
-      </div>
-
-      <Divider />
-
-      {/* ── CTA ── */}
-      <div className="max-w-3xl mx-auto px-6 md:px-10 py-16 md:py-20 text-center">
-        <h2 className="font-sans font-semibold text-2xl md:text-3xl tracking-heading text-brand-black mb-3">
-          Klaar om te checken?
-        </h2>
-        <p className="font-sans text-[15px] text-brand-black/70 mb-8 max-w-[440px] mx-auto leading-relaxed">
-          Beantwoord een aantal korte vragen en ontvang direct een inschatting van het risiconiveau van jouw AI-systeem.
-        </p>
-
-        <button
-          type="button"
-          onClick={onStart}
-          className="px-10 py-4 rounded-xl bg-brand-yellow text-brand-black font-semibold text-base
-            hover:bg-brand-yellow/90 active:scale-[0.98] transition-all duration-200
-            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-yellow focus-visible:ring-offset-4
-            shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
-        >
-          Start de check
-        </button>
-
-        <p className="font-mono text-xs text-brand-black/55 mt-4">
-          Duurt minder dan 5 minuten
-        </p>
-      </div>
+        {/* Goed om te weten */}
+        <Card>
+          <SectionLabel>Goed om te weten</SectionLabel>
+          <h2 className="font-sans font-semibold text-[15px] text-brand-black tracking-heading mb-3">
+            Je bent sneller 'gebruiker' dan je denkt
+          </h2>
+          <ul className="space-y-2 mb-4">
+            <Bullet>Copilot of ChatGPT gebruiken = jij bent exploitant</Bullet>
+            <Bullet>Je moet medewerkers trainen in AI-gebruik</Bullet>
+            <Bullet>Je moet weten wat tools doen met data</Bullet>
+          </ul>
+          <p className="font-sans text-[12px] text-brand-black/75 font-semibold border-t border-brand-black/[0.06] pt-3 leading-snug">
+            Weet je niet zeker waar je onder valt? Dan zit je waarschijnlijk dichter bij high-risk dan je denkt.
+          </p>
+        </Card>
+      </motion.div>
 
       {/* ── Footer ── */}
-      <div className="max-w-3xl mx-auto px-6 md:px-10 pb-10">
-        <div className="h-px bg-brand-black/[0.06] mb-6" />
-        <p className="font-mono text-[11px] text-brand-black/50 text-center">
-          Deze check is een eerste indicatie en vormt geen juridisch advies.
-        </p>
-      </div>
+      <p className="font-mono text-[11px] text-brand-black/40 text-center mt-8">
+        Deze check is een eerste indicatie en vormt geen juridisch advies.
+      </p>
     </motion.div>
   );
 }

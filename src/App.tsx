@@ -3,6 +3,8 @@ import { AnimatePresence } from "framer-motion";
 import type { AppState, Answers, Answer, AssessmentResult, IntakeData } from "./lib/types";
 import { emptyIntakeData } from "./lib/types";
 import { scoreAssessment } from "./lib/assessment";
+import { saveSubmission } from "./lib/submission-store";
+import { sendToAirtable } from "./lib/airtable";
 import { questions } from "./data/questions";
 import { AppShell } from "./components/app-shell";
 import { IntroScreen } from "./components/intro-screen";
@@ -79,6 +81,8 @@ export default function App() {
   const handleIntakeBack = useCallback(() => dispatch({ type: "GO_LANDING" }), []);
 
   const handleIntakeSubmit = useCallback((data: IntakeData) => {
+    const submission = saveSubmission(data);
+    sendToAirtable(submission);
     dispatch({ type: "SUBMIT_INTAKE", data });
   }, []);
 
