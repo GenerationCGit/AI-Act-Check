@@ -5,6 +5,7 @@ import { emptyIntakeData } from "./lib/types";
 import { scoreAssessment } from "./lib/assessment";
 import { saveSubmission } from "./lib/submission-store";
 import { sendToAirtable } from "./lib/airtable";
+import { sendToMailerLite } from "./lib/mailerlite";
 import { questions } from "./data/questions";
 import { AppShell } from "./components/app-shell";
 import { IntroScreen } from "./components/intro-screen";
@@ -83,6 +84,7 @@ export default function App() {
   const handleIntakeSubmit = useCallback((data: IntakeData) => {
     const submission = saveSubmission(data);
     sendToAirtable(submission);
+    sendToMailerLite(submission);
     dispatch({ type: "SUBMIT_INTAKE", data });
   }, []);
 
