@@ -2,9 +2,10 @@ import { motion } from "framer-motion";
 
 interface CTASectionProps {
   onRestart: () => void;
+  onCheckAnother: () => void;
 }
 
-export function CTASection({ onRestart }: CTASectionProps) {
+export function CTASection({ onRestart, onCheckAnother }: CTASectionProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -24,7 +25,7 @@ export function CTASection({ onRestart }: CTASectionProps) {
         Plan een AI Audit in waarin we verder onderzoek doen.
       </p>
 
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-row flex-wrap gap-3">
         <a
           href="mailto:info@generation-c.nl"
           className="inline-flex items-center justify-center px-7 py-3 rounded-xl bg-brand-yellow text-brand-black font-semibold text-sm
@@ -37,12 +38,22 @@ export function CTASection({ onRestart }: CTASectionProps) {
 
         <button
           type="button"
-          onClick={onRestart}
-          className="inline-flex items-center justify-center px-7 py-3 rounded-xl border border-brand-black/10 text-brand-black/60 text-sm
+          onClick={onCheckAnother}
+          className="inline-flex items-center justify-center px-7 py-3 rounded-xl border border-brand-black/10 text-brand-black/70 text-sm font-medium
             hover:bg-white hover:text-brand-black transition-all duration-200
             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-yellow focus-visible:ring-offset-2"
         >
-          Doe de check opnieuw
+          Check een ander systeem →
+        </button>
+
+        <button
+          type="button"
+          onClick={onRestart}
+          className="inline-flex items-center justify-center px-7 py-3 rounded-xl border border-brand-black/10 text-brand-black/50 text-sm
+            hover:bg-white hover:text-brand-black transition-all duration-200
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-yellow focus-visible:ring-offset-2"
+        >
+          Helemaal opnieuw beginnen
         </button>
       </div>
     </motion.div>

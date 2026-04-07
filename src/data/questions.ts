@@ -4,7 +4,7 @@ export const questions: Question[] = [
   // — Block 1: Use & function —
   {
     id: "purpose",
-    title: "Waarvoor wordt de AI gebruikt?",
+    title: "Waarvoor wordt het AI-systeem gebruikt?",
     type: "multi",
     helperText: "Selecteer alles wat van toepassing is.",
     options: [
@@ -20,7 +20,7 @@ export const questions: Question[] = [
   // — Block 2: Impact on people —
   {
     id: "affects-people",
-    title: "Heeft de AI invloed op beslissingen over personen?",
+    title: "Heeft het AI-systeem invloed op beslissingen over personen?",
     type: "single",
     options: [
       { id: "yes", label: "Ja" },
@@ -30,7 +30,7 @@ export const questions: Question[] = [
   },
   {
     id: "access-impact",
-    title: "Kan de AI invloed hebben op toegang tot belangrijke zaken?",
+    title: "Kan het AI-systeem invloed hebben op toegang tot belangrijke zaken?",
     type: "multi",
     helperText: "Selecteer alles wat van toepassing is.",
     options: [
@@ -47,7 +47,7 @@ export const questions: Question[] = [
   // — Block 3: Data & risk signals —
   {
     id: "personal-data",
-    title: "Worden er persoonsgegevens gebruikt door de AI?",
+    title: "Worden er persoonsgegevens gebruikt door het AI-systeem?",
     type: "single",
     options: [
       { id: "yes", label: "Ja" },
@@ -57,7 +57,7 @@ export const questions: Question[] = [
   },
   {
     id: "biometric",
-    title: "Gebruikt de AI biometrische gegevens, zoals gezicht, stem of vingerafdruk?",
+    title: "Gebruikt het AI-systeem biometrische gegevens, zoals gezicht, stem of vingerafdruk?",
     type: "single",
     options: [
       { id: "yes", label: "Ja" },
@@ -69,7 +69,7 @@ export const questions: Question[] = [
   // — Block 4: Control & transparency —
   {
     id: "human-oversight",
-    title: "Is er menselijke controle voordat de AI belangrijke beslissingen neemt?",
+    title: "Is er menselijke controle voordat het AI-systeem belangrijke beslissingen neemt?",
     type: "single",
     options: [
       { id: "yes", label: "Ja" },
@@ -90,7 +90,7 @@ export const questions: Question[] = [
   },
   {
     id: "explainability",
-    title: "Kun je uitleggen hoe de AI tot een uitkomst of beslissing komt?",
+    title: "Kun je uitleggen hoe het AI-systeem tot een uitkomst of beslissing komt?",
     type: "single",
     options: [
       { id: "yes", label: "Ja" },
@@ -102,7 +102,7 @@ export const questions: Question[] = [
   // — Block 5: Red flags —
   {
     id: "risk-signals",
-    title: "Heeft de AI impact op kwetsbare personen of probeert het gedrag van mensen te sturen?",
+    title: "Heeft het AI-systeem impact op kwetsbare personen of probeert het gedrag van mensen te sturen?",
     type: "multi",
     helperText: "Denk aan bijvoorbeeld kinderen, ouderen of mensen in afhankelijke posities.",
     options: [

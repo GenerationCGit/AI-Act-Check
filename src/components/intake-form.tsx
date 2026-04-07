@@ -10,23 +10,31 @@ interface IntakeFormProps {
 }
 
 const SECTOR_OPTIONS = [
-  "HR / recruitment",
+  "Accountancy / belasting",
+  "Detailhandel / e-commerce",
   "Financiële dienstverlening",
-  "Zorg",
-  "Overheid / publieke dienstverlening",
+  "HR / recruitment",
+  "Industrie / productie",
+  "Juridische dienstverlening",
+  "Logistiek / supply chain",
+  "Marketing / communicatie",
+  "Media / entertainment",
+  "Non-profit / ngo",
   "Onderwijs",
+  "Overheid / publieke dienstverlening",
+  "Real estate / vastgoed",
   "Technologie / software",
-  "Marketing / sales",
-  "Industrie / logistiek",
+  "Toerisme / horeca",
+  "Zorg / welzijn",
   "Zakelijke dienstverlening",
   "Anders",
 ];
 
 const COMPANY_SIZE_OPTIONS = [
-  "1–10 medewerkers",
-  "11–50 medewerkers",
-  "51–250 medewerkers",
-  "251–1000 medewerkers",
+  "1 tot 10 medewerkers",
+  "11 tot 50 medewerkers",
+  "51 tot 250 medewerkers",
+  "251 tot 1000 medewerkers",
   "1000+ medewerkers",
 ];
 
@@ -43,7 +51,7 @@ function validate(data: IntakeData): FieldErrors {
   if (!data.companyName.trim()) errors.companyName = "Bedrijfsnaam is verplicht";
   if (data.website.trim() && !URL_RE.test(data.website))
     errors.website = "Voer een geldige URL in";
-  if (!data.sector) errors.sector = "Selecteer een sector";
+  if (!data.sector || data.sector === "Anders") errors.sector = "Selecteer of vul een sector in";
   if (!data.companySize) errors.companySize = "Selecteer een bedrijfsgrootte";
   if (!data.aiSystemsUsed.trim())
     errors.aiSystemsUsed = "Beschrijf welke AI-systemen jullie gebruiken";
@@ -125,11 +133,11 @@ export function IntakeForm({ data, onSubmit, onBack }: IntakeFormProps) {
       </span>
 
       <h2 className="font-sans font-semibold text-2xl md:text-3xl tracking-heading text-brand-black mb-2 leading-tight">
-        Vertel kort iets over je organisatie
+        Vul je gegevens in voor een persoonlijke uitkomst
       </h2>
 
       <p className="font-sans text-[15px] text-brand-black/70 mb-8 max-w-[520px] leading-relaxed">
-        We gebruiken deze informatie om de check beter te contextualiseren en de uitkomst relevanter te maken.
+        Op basis van je sector en AI-gebruik stemmen we de resultaten af op jouw situatie.
       </p>
 
       <form onSubmit={handleSubmit} noValidate>
@@ -192,8 +200,14 @@ export function IntakeForm({ data, onSubmit, onBack }: IntakeFormProps) {
             <InputLabel htmlFor="intake-sector" required>Sector</InputLabel>
             <select
               id="intake-sector"
-              value={form.sector}
-              onChange={(e) => update("sector", e.target.value)}
+              value={SECTOR_OPTIONS.includes(form.sector) ? form.sector : form.sector ? "Anders" : ""}
+              onChange={(e) => {
+                if (e.target.value === "Anders") {
+                  update("sector", "Anders");
+                } else {
+                  update("sector", e.target.value);
+                }
+              }}
               className={cn(
                 selectBase,
                 fieldBorder(errors.sector),
@@ -205,6 +219,16 @@ export function IntakeForm({ data, onSubmit, onBack }: IntakeFormProps) {
                 <option key={s} value={s} className="text-[#232323] bg-white">{s}</option>
               ))}
             </select>
+            {(form.sector === "Anders" || (form.sector && !SECTOR_OPTIONS.slice(0, -1).includes(form.sector))) && (
+              <input
+                type="text"
+                placeholder="Vul je sector in"
+                value={form.sector === "Anders" ? "" : form.sector}
+                onChange={(e) => update("sector", e.target.value)}
+                className={cn(inputBase, fieldBorder(errors.sector), "mt-2")}
+                autoFocus
+              />
+            )}
             {errors.sector && <FieldError>{errors.sector}</FieldError>}
           </div>
 
@@ -269,17 +293,22 @@ export function IntakeForm({ data, onSubmit, onBack }: IntakeFormProps) {
         </div>
 
         {/* AI systems textarea — full width */}
-        <div className="mb-8">
-          <InputLabel htmlFor="intake-ai" required>Wat zijn de belangrijkste systemen die je gebruikt binnen je organisatie?</InputLabel>
+        <div className="mb-2">
+          <InputLabel htmlFor="intake-ai" required>Welke AI-systemen gebruik je binnen je organisatie?</InputLabel>
           <textarea
             id="intake-ai"
             value={form.aiSystemsUsed}
             onChange={(e) => update("aiSystemsUsed", e.target.value)}
-            placeholder="Bijvoorbeeld: ChatGPT, Copilot, een intern model, cv-screening software, aanbevelingssystemen..."
+            placeholder="Bijvoorbeeld: ChatGPT, Copilot, cv-screening software, aanbevelingssystemen..."
             rows={3}
             className={cn(inputBase, fieldBorder(errors.aiSystemsUsed), "resize-none")}
           />
           {errors.aiSystemsUsed && <FieldError>{errors.aiSystemsUsed}</FieldError>}
+        </div>
+        <div className="mb-8 rounded-xl bg-brand-yellow/10 border border-brand-yellow/30 px-4 py-3">
+          <p className="font-sans text-[13px] text-brand-black/70 leading-snug">
+            <span className="font-semibold text-brand-black">Let op:</span> de vragen hierna gelden voor één systeem tegelijk. Zet hier al je systemen neer, daarna kun je de check per systeem herhalen.
+          </p>
         </div>
 
         {/* Navigation */}

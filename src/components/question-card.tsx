@@ -14,6 +14,7 @@ interface QuestionCardProps {
   onBack: () => void;
   isFirst: boolean;
   isLast: boolean;
+  sectorHint?: string | null;
 }
 
 export function QuestionCard({
@@ -26,6 +27,7 @@ export function QuestionCard({
   onBack,
   isFirst,
   isLast,
+  sectorHint,
 }: QuestionCardProps) {
   const isSingle = question.type === "single";
   const currentAnswer = answer ?? (isSingle ? "" : []);
@@ -80,9 +82,16 @@ export function QuestionCard({
           </h2>
 
           {question.helperText && (
-            <p className="font-sans text-sm text-brand-black/45 mb-6">
+            <p className="font-sans text-sm text-brand-black/45 mb-3">
               {question.helperText}
             </p>
+          )}
+
+          {sectorHint && (
+            <div className="flex items-start gap-2 bg-brand-yellow/10 border border-brand-yellow/30 rounded-lg px-3 py-2.5 mb-3">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-brand-black/40 flex-shrink-0 mt-0.5">Tip</span>
+              <p className="font-sans text-[13px] text-brand-black/65 leading-snug">{sectorHint}</p>
+            </div>
           )}
 
           <div className="flex flex-col gap-2.5 mt-6" role="group" aria-label={question.title}>

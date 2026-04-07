@@ -31,7 +31,8 @@ type Action =
   | { type: "PREV_STEP" }
   | { type: "SHOW_LOADING" }
   | { type: "SHOW_RESULT"; result: AssessmentResult }
-  | { type: "RESTART" };
+  | { type: "RESTART" }
+  | { type: "CHECK_ANOTHER" };
 
 const initialState: State = {
   appState: "landing",
@@ -70,6 +71,8 @@ function reducer(state: State, action: Action): State {
       return { ...state, appState: "result", result: action.result };
     case "RESTART":
       return { ...initialState };
+    case "CHECK_ANOTHER":
+      return { ...state, appState: "questionnaire", currentStep: 0, answers: {}, result: null };
     default:
       return state;
   }
@@ -116,6 +119,7 @@ export default function App() {
   }, [state.currentStep]);
 
   const handleRestart = useCallback(() => dispatch({ type: "RESTART" }), []);
+  const handleCheckAnother = useCallback(() => dispatch({ type: "CHECK_ANOTHER" }), []);
 
   return (
     <AppShell appState={state.appState}>
@@ -149,6 +153,7 @@ export default function App() {
             result={state.result}
             companyName={state.intakeData.companyName}
             onRestart={handleRestart}
+            onCheckAnother={handleCheckAnother}
           />
         )}
       </AnimatePresence>

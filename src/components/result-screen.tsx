@@ -9,9 +9,10 @@ interface ResultScreenProps {
   result: AssessmentResult;
   companyName?: string;
   onRestart: () => void;
+  onCheckAnother: () => void;
 }
 
-export function ResultScreen({ result, companyName, onRestart }: ResultScreenProps) {
+export function ResultScreen({ result, companyName, onRestart, onCheckAnother }: ResultScreenProps) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -53,7 +54,7 @@ export function ResultScreen({ result, companyName, onRestart }: ResultScreenPro
           <NextStepsList steps={result.nextSteps} />
         </div>
 
-        <CTASection onRestart={onRestart} />
+        <CTASection onRestart={onRestart} onCheckAnother={onCheckAnother} />
 
         <DisclaimerFooter />
       </div>

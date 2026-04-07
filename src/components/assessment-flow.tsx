@@ -2,6 +2,7 @@ import { useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import type { Answers, Answer } from "../lib/types";
 import { questions } from "../data/questions";
+import { getSectorHint } from "../data/sector-hints";
 import { QuestionCard } from "./question-card";
 
 interface AssessmentFlowProps {
@@ -22,6 +23,7 @@ export function AssessmentFlow({
   onBack,
 }: AssessmentFlowProps) {
   const question = questions[currentStep]!;
+  const sectorHint = getSectorHint(question.id, sector);
   const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleAnswer = useCallback(
@@ -67,6 +69,7 @@ export function AssessmentFlow({
         onBack={onBack}
         isFirst={false}
         isLast={currentStep === questions.length - 1}
+        sectorHint={sectorHint}
       />
     </motion.div>
   );
