@@ -294,20 +294,20 @@ export function IntakeForm({ data, onSubmit, onBack }: IntakeFormProps) {
 
         {/* AI systems textarea — full width */}
         <div className="mb-2">
-          <InputLabel htmlFor="intake-ai" required>Welke AI-systemen gebruik je binnen je organisatie?</InputLabel>
+          <InputLabel htmlFor="intake-ai" required>Voor welk AI-systeem doe je deze check?</InputLabel>
           <textarea
             id="intake-ai"
             value={form.aiSystemsUsed}
             onChange={(e) => update("aiSystemsUsed", e.target.value)}
-            placeholder="Bijvoorbeeld: ChatGPT, Copilot, cv-screening software, aanbevelingssystemen..."
-            rows={3}
+            placeholder="Bijvoorbeeld: ChatGPT, Copilot, ons cv-screeningssysteem, de klantenservice chatbot..."
+            rows={2}
             className={cn(inputBase, fieldBorder(errors.aiSystemsUsed), "resize-none")}
           />
           {errors.aiSystemsUsed && <FieldError>{errors.aiSystemsUsed}</FieldError>}
         </div>
         <div className="mb-8 rounded-xl bg-brand-yellow/10 border border-brand-yellow/30 px-4 py-3">
           <p className="font-sans text-[13px] text-brand-black/70 leading-snug">
-            <span className="font-semibold text-brand-black">Let op:</span> de vragen hierna gelden voor één systeem tegelijk. Zet hier al je systemen neer, daarna kun je de check per systeem herhalen.
+            De vragen hierna gelden voor dit ene systeem. Gebruik je meerdere systemen? Herhaal de check daarna voor elk systeem apart.
           </p>
         </div>
 

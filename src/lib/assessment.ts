@@ -10,190 +10,141 @@ function getMultiAnswer(answers: Answers, id: string): string[] {
   return Array.isArray(val) ? val : [];
 }
 
-/** Maps intake sector strings to high-risk flag */
-const HIGH_RISK_SECTORS = new Set([
-  "HR / recruitment",
-  "Financiële dienstverlening",
-  "Zorg",
-  "Overheid / publieke dienstverlening",
-  "Onderwijs",
+const HIGH_RISK_AREAS = new Set([
+  "biometrics",
+  "education",
+  "employment",
+  "financial",
+  "essential-services",
+  "law-enforcement",
+  "migration",
+  "infrastructure",
+  "justice",
 ]);
 
-const HIGH_IMPACT_ACCESS = new Set([
-  "employment",
-  "credit",
-  "education",
-  "healthcare",
-  "government",
-  "safety",
+const PROHIBITED_FUNCTIONS = new Set([
+  "subliminal",
+  "social-scoring",
+  "realtime-biometrics",
+  "emotion-work",
+]);
+
+const TRANSPARENCY_FUNCTIONS = new Set([
+  "chatbot",
+  "synthetic-content",
+  "emotion-biometric",
 ]);
 
 export function scoreAssessment(answers: Answers, sector: string): AssessmentResult {
-  const purposes = getMultiAnswer(answers, "purpose");
-  const affectsPeople = getAnswer(answers, "affects-people");
-  const accessImpact = getMultiAnswer(answers, "access-impact");
-  const personalData = getAnswer(answers, "personal-data");
-  const biometric = getAnswer(answers, "biometric");
-  const humanOversight = getAnswer(answers, "human-oversight");
-  const aiLiteracy = getAnswer(answers, "ai-literacy");
-  const explainability = getAnswer(answers, "explainability");
-  const riskSignals = getMultiAnswer(answers, "risk-signals");
+  const rol = getAnswer(answers, "rol");
+  const verboden = getMultiAnswer(answers, "verboden-functies");
+  const gebied = getMultiAnswer(answers, "hoog-risico-gebied");
+  const invloedPersonen = getAnswer(answers, "invloed-personen");
+  const persoonsgegevens = getAnswer(answers, "persoonsgegevens");
+  const toezicht = getAnswer(answers, "menselijk-toezicht");
+  const transparantie = getMultiAnswer(answers, "transparantie");
+  const aiLiteracy = getAnswer(answers, "ai-geletterdheid");
 
-  const hasVulnerable = riskSignals.includes("vulnerable");
-  const hasBehavior = riskSignals.includes("behavior");
-  const isHighRiskSector = HIGH_RISK_SECTORS.has(sector);
-
-  const hasMonitor = purposes.includes("monitor");
-  const hasClassify = purposes.includes("classify");
-  const hasAutomate = purposes.includes("automate-decisions");
-  const hasSupport = purposes.includes("support-decisions");
+  const isProvider = rol === "provider";
+  const hasProhibited = verboden.some((v) => PROHIBITED_FUNCTIONS.has(v));
+  const highRiskAreas = gebied.filter((g) => HIGH_RISK_AREAS.has(g));
+  const isInHighRiskArea = highRiskAreas.length > 0;
+  const affectsPersons = invloedPersonen === "yes" || invloedPersonen === "partial";
+  const hasTransparency = transparantie.some((t) => TRANSPARENCY_FUNCTIONS.has(t));
 
   const reasons: string[] = [];
 
-  // ── Prohibited checks ──
-  // Biometrics + monitoring/classification
-  if (biometric === "yes" && (hasMonitor || hasClassify)) {
-    reasons.push("Het systeem gebruikt biometrische gegevens voor monitoring of classificatie.");
-    reasons.push("Biometrische surveillance kan onder de verboden categorieën van de AI Act vallen.");
+  // ── Prohibited check (Article 5) ──
+  if (hasProhibited) {
+    if (verboden.includes("subliminal"))
+      reasons.push("Het systeem kan mensen onbewust of manipulatief beïnvloeden.");
+    if (verboden.includes("social-scoring"))
+      reasons.push("Het systeem scoort of beoordeelt mensen op basis van gedrag of persoonlijkheid.");
+    if (verboden.includes("realtime-biometrics"))
+      reasons.push("Real-time gezichtsherkenning in openbare ruimtes is verboden onder de EU AI Act.");
+    if (verboden.includes("emotion-work"))
+      reasons.push("Emotieherkenning op de werkvloer of in het onderwijs is verboden.");
     return buildResult("prohibited", reasons, aiLiteracy);
   }
 
-  // Behavior steering + vulnerable groups
-  if (hasBehavior && hasVulnerable) {
-    reasons.push("Het systeem beïnvloedt gedrag en raakt kwetsbare groepen.");
-    reasons.push("Deze combinatie kan onder de verboden categorieën van de AI Act vallen.");
-    return buildResult("prohibited", reasons, aiLiteracy);
-  }
+  // ── Hard triggers voor hoog risico ──
 
-  // Classification/scoring in sensitive sectors
-  if (hasClassify && isHighRiskSector) {
-    reasons.push("Het systeem scoort of classificeert personen in een gevoelig domein.");
-    reasons.push("Dit kan kenmerken vertonen van verboden sociale scoring.");
-    return buildResult("prohibited", reasons, aiLiteracy);
-  }
-
-  // ── Hard triggers for high risk ──
-  const affectsPeopleAtAll = affectsPeople === "yes" || affectsPeople === "partial";
-
-  // No or partial human oversight
-  if (humanOversight === "no") {
-    reasons.push("Er is geen menselijke controle ingericht.");
-    return buildResult("high", reasons, aiLiteracy);
-  }
-  if (humanOversight === "partial") {
-    reasons.push("Menselijke controle is slechts gedeeltelijk ingericht.");
+  // Geen menselijk toezicht
+  if (toezicht === "no") {
+    reasons.push("Er is geen menselijke controle ingericht voordat het systeem actie onderneemt.");
     return buildResult("high", reasons, aiLiteracy);
   }
 
-  // No or partial AI literacy
-  if (aiLiteracy === "no") {
-    reasons.push("Medewerkers hebben geen richtlijnen of training ontvangen voor het gebruik van AI.");
-    return buildResult("high", reasons, aiLiteracy);
-  }
-  if (aiLiteracy === "partial") {
-    reasons.push("Er zijn beperkte richtlijnen voor het verantwoord gebruik van AI binnen de organisatie.");
+  // Hoog-risico gebied + directe invloed op personen
+  if (isInHighRiskArea && invloedPersonen === "yes") {
+    reasons.push(`Het systeem heeft directe invloed op personen in een gevoelig gebied: ${highRiskAreas.map(formatArea).join(", ")}.`);
     return buildResult("high", reasons, aiLiteracy);
   }
 
-  // Automates decisions + any impact on people
-  if (hasAutomate && affectsPeopleAtAll) {
-    reasons.push("De AI automatiseert beslissingen die invloed hebben op personen.");
+  // Provider zonder AI-geletterdheid
+  if (isProvider && aiLiteracy === "no") {
+    reasons.push("Als aanbieder van een AI-systeem ben je verplicht AI-geletterdheid te borgen (Artikel 4).");
     return buildResult("high", reasons, aiLiteracy);
   }
 
-  // High-risk sector + any impact on people
-  if (isHighRiskSector && affectsPeopleAtAll) {
-    reasons.push("De AI wordt ingezet in een gevoelig domein met invloed op personen.");
+  // Geen AI-geletterdheid bij hoog-risico gebied
+  if (isInHighRiskArea && aiLiteracy === "no") {
+    reasons.push("Er zijn geen instructies of training voor medewerkers bij een gevoelige toepassing.");
     return buildResult("high", reasons, aiLiteracy);
   }
 
-  // Personal data + not or partially explainable
-  if (personalData === "yes" && (explainability === "no" || explainability === "partial")) {
-    reasons.push("De AI verwerkt persoonsgegevens maar is niet of nauwelijks uitlegbaar.");
-    return buildResult("high", reasons, aiLiteracy);
-  }
-
-  // ── Point-based scoring ──
+  // ── Puntenscore voor overige gevallen ──
   let score = 0;
 
-  // Sector risk
-  if (isHighRiskSector) {
-    score += 3;
-    reasons.push("De sector valt onder een domein met verhoogd risico.");
+  if (isProvider) {
+    score += 2;
+    reasons.push("Als aanbieder van een AI-systeem gelden zwaardere verplichtingen.");
   }
 
-  // Purpose risk (cumulative — multiple purposes stack)
-  if (hasAutomate) {
-    score += 4;
-    reasons.push("Het systeem automatiseert beslissingen.");
+  if (isInHighRiskArea) {
+    score += highRiskAreas.length * 2;
+    reasons.push(`Het systeem wordt ingezet in een gevoelig gebied: ${highRiskAreas.map(formatArea).join(", ")}.`);
   }
-  if (hasClassify) {
+
+  if (invloedPersonen === "yes") {
     score += 3;
-    reasons.push("Het systeem classificeert of scoort personen.");
-  }
-  if (hasMonitor) {
-    score += 3;
-    reasons.push("Het systeem monitort personen of gedrag.");
-  }
-  if (hasSupport) {
+    reasons.push("Het systeem heeft directe invloed op beslissingen over personen.");
+  } else if (invloedPersonen === "partial") {
     score += 1;
+    reasons.push("Het systeem ondersteunt beslissingen over personen.");
   }
 
-  // Affects people (Q2)
-  if (affectsPeople === "yes") {
-    score += 3;
-    reasons.push("Het systeem heeft invloed op beslissingen over personen.");
-  } else if (affectsPeople === "partial") {
-    score += 1;
-  }
-
-  // Access impact (Q3)
-  const impactfulAccess = accessImpact.filter((a) => HIGH_IMPACT_ACCESS.has(a));
-  if (impactfulAccess.length > 0) {
-    score += Math.min(impactfulAccess.length * 2, 6);
-    reasons.push("De toepassing raakt toegang tot werk, zorg of andere essentiële diensten.");
-  }
-
-  // Personal data (Q4)
-  if (personalData === "yes") {
+  if (persoonsgegevens === "yes") {
     score += 1;
     reasons.push("Het systeem verwerkt persoonsgegevens.");
-  }
-
-  // Biometric data (Q5)
-  if (biometric === "yes") {
-    score += 4;
-    reasons.push("Er worden biometrische gegevens gebruikt.");
-  } else if (biometric === "unsure") {
+  } else if (persoonsgegevens === "unsure") {
     score += 1;
+    reasons.push("Het is onduidelijk of het systeem persoonsgegevens verwerkt.");
   }
 
-  // Explainability (Q8)
-  if (explainability === "no") {
+  if (toezicht === "partial") {
     score += 2;
-    reasons.push("Het systeem is niet of moeilijk uitlegbaar.");
-  } else if (explainability === "partial") {
-    score += 1;
+    reasons.push("Menselijk toezicht is niet altijd gewaarborgd.");
   }
 
-  // Risk signals (Q9)
-  if (hasVulnerable) {
-    score += 3;
-    reasons.push("Het systeem heeft impact op kwetsbare personen of groepen.");
-  }
-  if (hasBehavior) {
+  if (hasTransparency) {
     score += 2;
-    reasons.push("Het systeem probeert gedrag van mensen te beïnvloeden.");
-  }
-  if (riskSignals.includes("unsure")) {
-    score += 1;
+    reasons.push("Het systeem heeft transparantieverplichtingen onder Artikel 50 van de EU AI Act.");
   }
 
-  // ── Determine category ──
+  if (aiLiteracy === "no") {
+    score += 2;
+    reasons.push("Medewerkers hebben geen instructies of training ontvangen voor dit systeem.");
+  } else if (aiLiteracy === "partial") {
+    score += 1;
+    reasons.push("De AI-geletterdheid van medewerkers is beperkt.");
+  }
+
+  // ── Categorie bepalen ──
   let category: RiskCategory;
-  if (score >= 14) {
+  if (score >= 9) {
     category = "high";
-  } else if (score >= 7) {
+  } else if (score >= 4) {
     category = "medium";
   } else {
     category = "low";
@@ -202,67 +153,81 @@ export function scoreAssessment(answers: Answers, sector: string): AssessmentRes
   return buildResult(category, reasons, aiLiteracy);
 }
 
-// ── Result copy & next steps ──
+// ── Labels voor hoog-risico gebieden ──
+function formatArea(id: string): string {
+  const labels: Record<string, string> = {
+    biometrics: "biometrie",
+    education: "onderwijs",
+    employment: "werving en selectie",
+    financial: "financiële diensten",
+    "essential-services": "essentiële diensten",
+    "law-enforcement": "rechtshandhaving",
+    migration: "migratie",
+    infrastructure: "kritieke infrastructuur",
+    justice: "rechtspraak",
+  };
+  return labels[id] ?? id;
+}
 
+// ── Resultaatteksten ──
 const RESULT_COPY: Record<RiskCategory, { badge: string; headline: string; description: string }> = {
   low: {
     badge: "Laag risico",
-    headline: "Waarschijnlijk geen high-risk AI",
+    headline: "Waarschijnlijk geen hoog-risico AI",
     description:
-      "Op basis van je antwoorden lijkt dit AI-systeem waarschijnlijk niet onder de high-risk categorie van de EU AI Act te vallen.",
+      "Op basis van je antwoorden lijkt dit AI-systeem waarschijnlijk niet onder de hoog-risico categorie van de EU AI Act te vallen. Er kunnen wel lichtere verplichtingen gelden, zoals transparantie of AI-geletterdheid.",
   },
   medium: {
     badge: "Aandacht vereist",
     headline: "Aanvullende beoordeling aanbevolen",
     description:
-      "Op basis van je antwoorden zijn er signalen dat deze AI-toepassing nader beoordeeld moet worden.",
+      "Er zijn signalen dat dit systeem nader beoordeeld moet worden. Het valt mogelijk onder lichtere verplichtingen of bevindt zich op de grens van hoog risico.",
   },
   high: {
     badge: "Hoog risico",
-    headline: "Waarschijnlijk high-risk AI",
+    headline: "Waarschijnlijk hoog-risico AI",
     description:
-      "Op basis van je antwoorden lijkt dit AI-systeem waarschijnlijk onder een hogere risicocategorie van de EU AI Act te vallen.",
+      "Op basis van je antwoorden lijkt dit AI-systeem onder de hoog-risico categorie van de EU AI Act te vallen. Dat betekent dat er strenge eisen gelden voor documentatie, toezicht en governance.",
   },
   prohibited: {
     badge: "Direct beoordelen",
     headline: "Let op: mogelijk verboden toepassing",
     description:
-      "Op basis van je antwoorden zijn er duidelijke signalen dat deze toepassing onder de EU AI Act ernstige risico's of verboden kenmerken kan hebben.",
+      "Er zijn kenmerken die kunnen wijzen op een verboden toepassing onder Artikel 5 van de EU AI Act. Laat dit direct toetsen door een juridisch of compliance expert.",
   },
 };
 
 const BASE_NEXT_STEPS: Record<RiskCategory, string[]> = {
   low: [
-    "Leg je use case en menselijke controle kort vast",
-    "Blijf monitoren of de toepassing zwaardere impact krijgt",
-    "Controleer periodiek of de inzet verandert",
+    "Leg kort vast waarvoor het systeem wordt gebruikt en wie er verantwoordelijk voor is",
+    "Controleer of het systeem transparantieverplichtingen heeft (bijv. chatbot-melding)",
+    "Houd bij of de toepassing verandert en beoordeel dan opnieuw",
   ],
   medium: [
-    "Beoordeel de use case uitgebreider",
-    "Controleer de rol van menselijke controle",
-    "Breng uitlegbaarheid en documentatie op orde",
-    "Laat de toepassing intern of extern reviewen",
+    "Beoordeel of het systeem in een hoog-risico categorie valt (Annex III van de EU AI Act)",
+    "Versterk het menselijk toezicht op de uitkomsten van het systeem",
+    "Leg de use case en verantwoordelijkheden vast in een document",
+    "Overweeg een interne of externe compliance review",
   ],
   high: [
-    "Toets de toepassing aan de eisen van de EU AI Act",
-    "Versterk menselijke controle",
-    "Richt documentatie, logging en governance in",
-    "Onderzoek datakwaliteit en bias-risico's",
-    "Neem een juridische of compliance review op",
+    "Toets het systeem aan de eisen van de EU AI Act voor hoog-risico AI (Artikel 16 of 26)",
+    "Richt menselijk toezicht, logging en documentatie in",
+    "Voer een risicobeoordeling en eventueel een grondrechtentoets uit",
+    "Stel een verantwoordelijke aan voor AI-compliance binnen de organisatie",
+    "Laat de toepassing juridisch of door een compliance expert reviewen",
   ],
   prohibited: [
     "Pauzeer of heroverweeg de toepassing direct",
-    "Laat de use case juridisch en inhoudelijk toetsen",
-    "Onderzoek of biometrie, scoring of gedragsbeïnvloeding problematisch wordt ingezet",
-    "Herontwerp de toepassing waar nodig",
+    "Laat de use case toetsen door een juridisch of compliance expert",
+    "Onderzoek of aanpassingen de toepassing buiten de verboden categorie brengen",
+    "Documenteer je beoordeling voor het geval toezichthouders vragen stellen",
   ],
 };
 
 const AI_LITERACY_NEXT_STEPS = [
-  "Zorg voor duidelijke AI-richtlijnen voor medewerkers",
-  "Train medewerkers in verantwoord gebruik van AI",
-  "Maak afspraken over datagebruik en privacy bij AI-tools",
-  "Leg vast hoe AI-output gecontroleerd moet worden",
+  "Zorg voor duidelijke instructies voor medewerkers over wat het systeem doet en hoe ze de uitkomst moeten interpreteren",
+  "Train medewerkers in verantwoord gebruik van AI, privacy en risico's",
+  "Leg vast hoe AI-uitkomsten worden gecontroleerd en gedocumenteerd",
 ];
 
 function buildResult(category: RiskCategory, reasons: string[], aiLiteracy: string): AssessmentResult {
