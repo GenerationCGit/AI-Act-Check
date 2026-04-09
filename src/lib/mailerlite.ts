@@ -1,7 +1,7 @@
 import type { Submission } from "./submission-store";
 import type { AssessmentResult } from "./types";
 
-const MAILERLITE_TOKEN = import.meta.env.VITE_MAILERLITE_TOKEN as string | undefined;
+const MAILERLITE_PROXY = "https://ai-act-check-mailerlite-proxy.nora-f83.workers.dev/";
 const GROUP_ID = "183640504839178201"; // AI Act Check Leads
 const RESULTS_GROUP_ID = "184264998552340413"; // AI Act Check — Results sent (trigger automation)
 
@@ -12,19 +12,10 @@ export interface CompletedCheck {
 }
 
 export async function sendToMailerLite(submission: Submission): Promise<void> {
-  if (!MAILERLITE_TOKEN) {
-    console.warn("MailerLite token niet ingesteld (VITE_MAILERLITE_TOKEN).");
-    return;
-  }
-
   try {
-    await fetch("https://connect.mailerlite.com/api/subscribers", {
+    await fetch(MAILERLITE_PROXY, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${MAILERLITE_TOKEN}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         email: submission.email,
         fields: {
@@ -101,27 +92,16 @@ export async function sendResultsToMailerLite(
   submission: Submission,
   checks: CompletedCheck[]
 ): Promise<boolean> {
-  if (!MAILERLITE_TOKEN) {
-    console.warn("MailerLite token niet ingesteld (VITE_MAILERLITE_TOKEN).");
-    return false;
-  }
   if (checks.length === 0) return false;
 
   const summary = checks
-    .map(
-      (c, i) =>
-        `${i + 1}. ${c.systemName} — ${c.result.badge}`
-    )
+    .map((c, i) => `${i + 1}. ${c.systemName} — ${c.result.badge}`)
     .join("\n");
 
   try {
-    const response = await fetch("https://connect.mailerlite.com/api/subscribers", {
+    const response = await fetch(MAILERLITE_PROXY, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${MAILERLITE_TOKEN}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         email: submission.email,
         fields: {
