@@ -5,7 +5,7 @@ import { emptyIntakeData } from "./lib/types";
 import { scoreAssessment } from "./lib/assessment";
 import { saveSubmission } from "./lib/submission-store";
 import { sendToAirtable } from "./lib/airtable";
-import { sendToMailerLite } from "./lib/mailerlite";
+import { sendToMailerLite, sendResultsToMailerLite, type CompletedCheck } from "./lib/mailerlite";
 import { questions } from "./data/questions";
 import { AppShell } from "./components/app-shell";
 import { IntroScreen } from "./components/intro-screen";
@@ -20,6 +20,7 @@ interface State {
   currentStep: number;
   answers: Answers;
   result: AssessmentResult | null;
+  completedChecks: CompletedCheck[];
 }
 
 type Action =
@@ -32,7 +33,7 @@ type Action =
   | { type: "SHOW_LOADING" }
   | { type: "SHOW_RESULT"; result: AssessmentResult }
   | { type: "RESTART" }
-  | { type: "CHECK_ANOTHER" };
+  | { type: "CHECK_ANOTHER"; check: CompletedCheck };
 
 const initialState: State = {
   appState: "landing",
@@ -40,6 +41,7 @@ const initialState: State = {
   currentStep: 0,
   answers: {},
   result: null,
+  completedChecks: [],
 };
 
 function reducer(state: State, action: Action): State {
@@ -72,7 +74,14 @@ function reducer(state: State, action: Action): State {
     case "RESTART":
       return { ...initialState };
     case "CHECK_ANOTHER":
-      return { ...state, appState: "questionnaire", currentStep: 0, answers: {}, result: null };
+      return {
+        ...state,
+        appState: "questionnaire",
+        currentStep: 0,
+        answers: {},
+        result: null,
+        completedChecks: [...state.completedChecks, action.check],
+      };
     default:
       return state;
   }
@@ -119,7 +128,30 @@ export default function App() {
   }, [state.currentStep]);
 
   const handleRestart = useCallback(() => dispatch({ type: "RESTART" }), []);
-  const handleCheckAnother = useCallback(() => dispatch({ type: "CHECK_ANOTHER" }), []);
+
+  const handleCheckAnother = useCallback(() => {
+    if (!state.result) return;
+    const check: CompletedCheck = {
+      systemName: state.intakeData.aiSystemsUsed || "AI-systeem",
+      result: state.result,
+      completedAt: new Date().toISOString(),
+    };
+    dispatch({ type: "CHECK_ANOTHER", check });
+  }, [state.result, state.intakeData.aiSystemsUsed]);
+
+  const handleSendResults = useCallback(async () => {
+    if (!state.result) return false;
+    const allChecks: CompletedCheck[] = [
+      ...state.completedChecks,
+      {
+        systemName: state.intakeData.aiSystemsUsed || "AI-systeem",
+        result: state.result,
+        completedAt: new Date().toISOString(),
+      },
+    ];
+    const submission = saveSubmission(state.intakeData);
+    return await sendResultsToMailerLite(submission, allChecks);
+  }, [state.result, state.intakeData, state.completedChecks]);
 
   return (
     <AppShell appState={state.appState}>
@@ -152,8 +184,10 @@ export default function App() {
             key="result"
             result={state.result}
             companyName={state.intakeData.companyName}
+            previousChecksCount={state.completedChecks.length}
             onRestart={handleRestart}
             onCheckAnother={handleCheckAnother}
+            onSendResults={handleSendResults}
           />
         )}
       </AnimatePresence>

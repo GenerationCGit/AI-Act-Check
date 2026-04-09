@@ -8,11 +8,20 @@ import { DisclaimerFooter } from "./disclaimer-footer";
 interface ResultScreenProps {
   result: AssessmentResult;
   companyName?: string;
+  previousChecksCount: number;
   onRestart: () => void;
   onCheckAnother: () => void;
+  onSendResults: () => Promise<boolean>;
 }
 
-export function ResultScreen({ result, companyName, onRestart, onCheckAnother }: ResultScreenProps) {
+export function ResultScreen({
+  result,
+  companyName,
+  previousChecksCount,
+  onRestart,
+  onCheckAnother,
+  onSendResults,
+}: ResultScreenProps) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -54,7 +63,12 @@ export function ResultScreen({ result, companyName, onRestart, onCheckAnother }:
           <NextStepsList steps={result.nextSteps} />
         </div>
 
-        <CTASection onRestart={onRestart} onCheckAnother={onCheckAnother} />
+        <CTASection
+          onRestart={onRestart}
+          onCheckAnother={onCheckAnother}
+          onSendResults={onSendResults}
+          previousChecksCount={previousChecksCount}
+        />
 
         <DisclaimerFooter />
       </div>
