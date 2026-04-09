@@ -293,8 +293,13 @@ export function IntakeForm({ data, onSubmit, onBack }: IntakeFormProps) {
         </div>
 
         {/* AI systems textarea — full width */}
-        <div className="mb-2">
-          <InputLabel htmlFor="intake-ai" required>Voor welk AI-systeem doe je deze check?</InputLabel>
+        <div className="mb-8">
+          <InputLabel htmlFor="intake-ai" required>
+            Voor welk AI-systeem doe je deze check?{" "}
+            <span className="font-sans normal-case tracking-normal text-[12px] text-brand-black/55 font-normal">
+              (de vragen hierna gelden voor dit ene systeem, gebruik je er meerdere? Herhaal de check dan per systeem)
+            </span>
+          </InputLabel>
           <textarea
             id="intake-ai"
             value={form.aiSystemsUsed}
@@ -304,11 +309,6 @@ export function IntakeForm({ data, onSubmit, onBack }: IntakeFormProps) {
             className={cn(inputBase, fieldBorder(errors.aiSystemsUsed), "resize-none")}
           />
           {errors.aiSystemsUsed && <FieldError>{errors.aiSystemsUsed}</FieldError>}
-        </div>
-        <div className="mb-8 rounded-xl bg-brand-yellow/10 border border-brand-yellow/30 px-4 py-3">
-          <p className="font-sans text-[13px] text-brand-black/70 leading-snug">
-            De vragen hierna gelden voor dit ene systeem. Gebruik je meerdere systemen? Herhaal de check daarna voor elk systeem apart.
-          </p>
         </div>
 
         {/* Navigation */}
@@ -338,7 +338,7 @@ export function IntakeForm({ data, onSubmit, onBack }: IntakeFormProps) {
               Verder naar de check
             </button>
             <span className="font-mono text-xs text-brand-black/55">
-              Je bent zo klaar.
+              De check duurt enkele minuten.
             </span>
           </div>
         </div>

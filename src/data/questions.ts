@@ -80,7 +80,7 @@ export const questions: Question[] = [
   // — #R3: Verboden functies (Artikel 5) —
   {
     id: "verboden",
-    title: "Doet het AI-systeem een van deze dingen?",
+    title: "Wordt het AI-systeem ingezet om een van de onderstaande punten uit te voeren?",
     type: "multi",
     helperText: "Dit zijn toepassingen die de EU helemaal heeft verboden. Twijfel je? Selecteer dan wat het meest in de buurt komt.",
     options: [
@@ -179,7 +179,7 @@ export const questions: Question[] = [
   // — #R4: Transparantieverplichtingen (Artikel 50) —
   {
     id: "transparantie",
-    title: "Doet het AI-systeem een van deze dingen?",
+    title: "Wordt het AI-systeem ingezet om een van de onderstaande punten uit te voeren?",
     type: "multi",
     helperText: "Voor deze toepassingen gelden extra transparantie-eisen, zodat mensen weten dat ze met AI te maken hebben.",
     options: [

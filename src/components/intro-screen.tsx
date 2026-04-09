@@ -228,11 +228,11 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
                 <p className="font-sans text-[12px] text-brand-black/80 leading-snug">{level.definition}</p>
                 <div>
                   <span className="font-mono text-[9px] uppercase tracking-wider text-brand-black/40 block mb-0.5">Voorbeelden</span>
-                  <p className="font-sans text-[12px] text-brand-black/60 leading-snug">{level.examples}</p>
+                  <p className="font-sans text-[12px] text-brand-black/80 leading-snug">{level.examples}</p>
                 </div>
                 <div className="border-t border-brand-black/[0.06] pt-2">
                   <span className="font-mono text-[9px] uppercase tracking-wider text-brand-black/40 block mb-0.5">Regels</span>
-                  <p className="font-sans text-[12px] text-brand-black/60 leading-snug">{level.rules}</p>
+                  <p className="font-sans text-[12px] text-brand-black/80 leading-snug">{level.rules}</p>
                 </div>
               </div>
             ))}
