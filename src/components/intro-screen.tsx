@@ -85,14 +85,16 @@ const TIMELINE = [
   },
   {
     date: "Augustus 2026",
-    badge: "Belangrijkste deadline",
-    body: "Alle systemen die als 'hoog risico' worden gezien, zoals AI voor sollicitaties of in het onderwijs, moeten nu aan strenge eisen voldoen.",
-    highlight: true,
+    badge: "Komt eraan",
+    body: "De meeste algemene verplichtingen uit de wet gaan in. Voor hoog-risico systemen krijgen organisaties nog een extra jaar de tijd.",
+    highlight: false,
+    upcoming: true,
   },
   {
     date: "Augustus 2027",
-    body: "De allerlaatste groep systemen (AI die al in andere EU-producten zit, zoals medische apparaten) moet dan ook aan de regels voldoen.",
-    highlight: false,
+    badge: "Belangrijkste deadline",
+    body: "Hoog-risico AI-systemen, zoals AI voor sollicitaties of in het onderwijs, moeten aan de eisen voldoen. Deze deadline is een jaar uitgesteld om organisaties meer ruimte te geven.",
+    highlight: true,
   },
 ];
 
@@ -245,7 +247,7 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
               Waarom nu een goed moment?
             </h2>
             <ul className="space-y-2">
-              <Bullet>De belangrijkste deadline is augustus 2026, er is nog tijd om je voor te bereiden</Bullet>
+              <Bullet>De deadline voor hoog-risico AI is uitgesteld naar augustus 2027, er is dus volop tijd om je voor te bereiden</Bullet>
               <Bullet>Vroeg beginnen geeft ruimte om stap voor stap te werken</Bullet>
               <Bullet>Bewustwording is al een groot deel van de oplossing</Bullet>
               <Bullet>Toezichthouders kijken eerst naar inspanning, niet direct naar fouten</Bullet>
@@ -275,14 +277,18 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
             Van start naar wet: de belangrijkste data
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {TIMELINE.map((item, i, arr) => (
+            {TIMELINE.map((item, i, arr) => {
+              const upcoming = (item as { upcoming?: boolean }).upcoming;
+              return (
               <div key={item.date} className="relative flex flex-col">
                 <div className="flex items-center mb-3 gap-2">
                   <div className={cn(
                     "w-3 h-3 rounded-full flex-shrink-0 ring-2",
                     item.highlight
                       ? "bg-brand-yellow ring-brand-yellow/40"
-                      : "bg-brand-black/20 ring-brand-black/10"
+                      : upcoming
+                        ? "bg-brand-yellow/40 ring-brand-yellow/20"
+                        : "bg-brand-black/20 ring-brand-black/10"
                   )} />
                   {i < arr.length - 1 && (
                     <div className="hidden md:block flex-1 h-px bg-brand-black/[0.08]" />
@@ -292,28 +298,44 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
                   "rounded-xl border p-3.5 flex-1",
                   item.highlight
                     ? "border-brand-yellow/40 bg-brand-yellow/[0.07]"
-                    : "border-brand-black/[0.07] bg-brand-off-white/40"
+                    : upcoming
+                      ? "border-brand-yellow/25 bg-brand-yellow/[0.03]"
+                      : "border-brand-black/[0.07] bg-brand-off-white/40"
                 )}>
                   {item.badge && (
-                    <span className="inline-block font-mono text-[10px] uppercase tracking-wider text-brand-black/70 bg-brand-yellow/30 border border-brand-yellow/40 px-2 py-0.5 rounded-full mb-2">
+                    <span className={cn(
+                      "inline-block font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full mb-2 border",
+                      item.highlight
+                        ? "text-brand-black/70 bg-brand-yellow/30 border-brand-yellow/40"
+                        : "text-brand-black/55 bg-brand-yellow/15 border-brand-yellow/25"
+                    )}>
                       {item.badge}
                     </span>
                   )}
                   <p className={cn(
                     "font-mono text-[10px] uppercase tracking-wider mb-1.5",
-                    item.highlight ? "text-brand-black/70 font-semibold" : "text-brand-black/40"
+                    item.highlight
+                      ? "text-brand-black/70 font-semibold"
+                      : upcoming
+                        ? "text-brand-black/60 font-semibold"
+                        : "text-brand-black/40"
                   )}>
                     {item.date}
                   </p>
                   <p className={cn(
                     "font-sans text-[12px] leading-snug",
-                    item.highlight ? "text-brand-black/80" : "text-brand-black/50"
+                    item.highlight
+                      ? "text-brand-black/80"
+                      : upcoming
+                        ? "text-brand-black/70"
+                        : "text-brand-black/50"
                   )}>
                     {item.body}
                   </p>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
 

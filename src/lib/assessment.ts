@@ -12,85 +12,108 @@ function getMultiAnswer(answers: Answers, id: string): string[] {
 
 const HIGH_RISK_AREAS = new Set([
   "biometrics",
+  "infrastructure",
   "education",
   "employment",
-  "financial",
   "essential-services",
   "law-enforcement",
   "migration",
-  "infrastructure",
   "justice",
 ]);
 
 const PROHIBITED_FUNCTIONS = new Set([
   "subliminal",
+  "vulnerable",
+  "biometric-categorisation",
   "social-scoring",
-  "realtime-biometrics",
+  "predictive-policing",
+  "facial-database",
   "emotion-work",
+  "realtime-biometrics",
 ]);
 
 const TRANSPARENCY_FUNCTIONS = new Set([
-  "chatbot",
-  "synthetic-content",
+  "deepfake",
+  "public-text",
   "emotion-biometric",
+  "interacting",
+  "synthetic-content",
 ]);
 
-export function scoreAssessment(answers: Answers, sector: string): AssessmentResult {
-  const rol = getAnswer(answers, "rol");
-  const verboden = getMultiAnswer(answers, "verboden-functies");
+export function scoreAssessment(answers: Answers, _sector: string): AssessmentResult {
+  const entiteit = getAnswer(answers, "entiteit");
+  const aanpassingen = getMultiAnswer(answers, "aanpassingen");
+  const reikwijdte = getMultiAnswer(answers, "reikwijdte");
+  const verboden = getMultiAnswer(answers, "verboden");
   const gebied = getMultiAnswer(answers, "hoog-risico-gebied");
-  const invloedPersonen = getAnswer(answers, "invloed-personen");
-  const persoonsgegevens = getAnswer(answers, "persoonsgegevens");
-  const toezicht = getAnswer(answers, "menselijk-toezicht");
+  const significantRisico = getAnswer(answers, "significant-risico");
   const transparantie = getMultiAnswer(answers, "transparantie");
   const aiLiteracy = getAnswer(answers, "ai-geletterdheid");
+  const publiek = getAnswer(answers, "publiek");
 
-  const isProvider = rol === "provider";
+  const isProvider = entiteit === "provider";
+  const isDeployer = entiteit === "deployer";
+  const becomesProvider = aanpassingen.some((a) => a !== "none");
+  const inEUScope = reikwijdte.some((r) => r !== "none");
   const hasProhibited = verboden.some((v) => PROHIBITED_FUNCTIONS.has(v));
   const highRiskAreas = gebied.filter((g) => HIGH_RISK_AREAS.has(g));
   const isInHighRiskArea = highRiskAreas.length > 0;
-  const affectsPersons = invloedPersonen === "yes" || invloedPersonen === "partial";
   const hasTransparency = transparantie.some((t) => TRANSPARENCY_FUNCTIONS.has(t));
+  const isPublicBody = publiek === "yes";
 
   const reasons: string[] = [];
 
-  // ── Prohibited check (Article 5) ──
+  // ── Buiten reikwijdte ──
+  if (!inEUScope) {
+    reasons.push("Het systeem valt op basis van je antwoorden waarschijnlijk buiten de reikwijdte van de EU AI Act.");
+    return buildResult("low", reasons, aiLiteracy);
+  }
+
+  // ── Verboden (Artikel 5) ──
   if (hasProhibited) {
     if (verboden.includes("subliminal"))
       reasons.push("Het systeem kan mensen onbewust of manipulatief beïnvloeden.");
+    if (verboden.includes("vulnerable"))
+      reasons.push("Het systeem maakt mogelijk misbruik van kwetsbaarheden van mensen.");
+    if (verboden.includes("biometric-categorisation"))
+      reasons.push("Het systeem deelt mensen in op basis van gevoelige kenmerken.");
     if (verboden.includes("social-scoring"))
-      reasons.push("Het systeem scoort of beoordeelt mensen op basis van gedrag of persoonlijkheid.");
-    if (verboden.includes("realtime-biometrics"))
-      reasons.push("Real-time gezichtsherkenning in openbare ruimtes is verboden onder de EU AI Act.");
+      reasons.push("Het systeem geeft mensen een score op basis van gedrag of persoonlijke kenmerken.");
+    if (verboden.includes("predictive-policing"))
+      reasons.push("Voorspellend politiewerk op basis van persoonlijkheidsprofielen is verboden.");
+    if (verboden.includes("facial-database"))
+      reasons.push("Het ongericht bouwen van gezichtsherkenningsdatabases is verboden.");
     if (verboden.includes("emotion-work"))
       reasons.push("Emotieherkenning op de werkvloer of in het onderwijs is verboden.");
+    if (verboden.includes("realtime-biometrics"))
+      reasons.push("Real-time gezichtsherkenning in openbare ruimtes is verboden.");
     return buildResult("prohibited", reasons, aiLiteracy);
   }
 
-  // ── Hard triggers voor hoog risico ──
-
-  // Geen menselijk toezicht
-  if (toezicht === "no") {
-    reasons.push("Er is geen menselijke controle ingericht voordat het systeem actie onderneemt.");
+  // ── Hoog risico (Annex III) ──
+  if (isInHighRiskArea && significantRisico !== "no") {
+    reasons.push(
+      `Het systeem wordt ingezet in een gevoelig gebied: ${highRiskAreas.map(formatArea).join(", ")}.`
+    );
+    if (significantRisico === "yes") {
+      reasons.push("Het systeem heeft een serieuze invloed op gezondheid, veiligheid of grondrechten.");
+    } else {
+      reasons.push("Het is niet zeker of het systeem een serieuze invloed heeft op personen.");
+    }
+    if (isProvider || becomesProvider) {
+      reasons.push("Als aanbieder van een hoog-risico systeem gelden de verplichtingen uit Artikel 16.");
+    } else if (isDeployer) {
+      reasons.push("Als gebruiker van een hoog-risico systeem gelden de verplichtingen uit Artikel 26.");
+    }
+    if (isDeployer && isPublicBody) {
+      reasons.push("Als publieke instantie moet je voor inzet een grondrechtentoets uitvoeren (Artikel 27).");
+    }
     return buildResult("high", reasons, aiLiteracy);
   }
 
-  // Hoog-risico gebied + directe invloed op personen
-  if (isInHighRiskArea && invloedPersonen === "yes") {
-    reasons.push(`Het systeem heeft directe invloed op personen in een gevoelig gebied: ${highRiskAreas.map(formatArea).join(", ")}.`);
-    return buildResult("high", reasons, aiLiteracy);
-  }
-
-  // Provider zonder AI-geletterdheid
-  if (isProvider && aiLiteracy === "no") {
-    reasons.push("Als aanbieder van een AI-systeem ben je verplicht AI-geletterdheid te borgen (Artikel 4).");
-    return buildResult("high", reasons, aiLiteracy);
-  }
-
-  // Geen AI-geletterdheid bij hoog-risico gebied
-  if (isInHighRiskArea && aiLiteracy === "no") {
-    reasons.push("Er zijn geen instructies of training voor medewerkers bij een gevoelige toepassing.");
-    return buildResult("high", reasons, aiLiteracy);
+  // ── Aanpassingen maken jou tot aanbieder ──
+  if (becomesProvider && !isProvider) {
+    reasons.push("Door de aanpassingen aan het systeem word je onder Artikel 25 als aanbieder gezien.");
   }
 
   // ── Puntenscore voor overige gevallen ──
@@ -101,50 +124,40 @@ export function scoreAssessment(answers: Answers, sector: string): AssessmentRes
     reasons.push("Als aanbieder van een AI-systeem gelden zwaardere verplichtingen.");
   }
 
-  if (isInHighRiskArea) {
-    score += highRiskAreas.length * 2;
-    reasons.push(`Het systeem wordt ingezet in een gevoelig gebied: ${highRiskAreas.map(formatArea).join(", ")}.`);
-  }
-
-  if (invloedPersonen === "yes") {
-    score += 3;
-    reasons.push("Het systeem heeft directe invloed op beslissingen over personen.");
-  } else if (invloedPersonen === "partial") {
-    score += 1;
-    reasons.push("Het systeem ondersteunt beslissingen over personen.");
-  }
-
-  if (persoonsgegevens === "yes") {
-    score += 1;
-    reasons.push("Het systeem verwerkt persoonsgegevens.");
-  } else if (persoonsgegevens === "unsure") {
-    score += 1;
-    reasons.push("Het is onduidelijk of het systeem persoonsgegevens verwerkt.");
-  }
-
-  if (toezicht === "partial") {
+  if (becomesProvider) {
     score += 2;
-    reasons.push("Menselijk toezicht is niet altijd gewaarborgd.");
+  }
+
+  if (isInHighRiskArea && significantRisico === "no") {
+    score += 1;
+    reasons.push(
+      `Het systeem wordt in een gevoelig gebied ingezet (${highRiskAreas.map(formatArea).join(", ")}), maar zonder serieuze impact op personen.`
+    );
   }
 
   if (hasTransparency) {
     score += 2;
-    reasons.push("Het systeem heeft transparantieverplichtingen onder Artikel 50 van de EU AI Act.");
+    if (transparantie.includes("interacting"))
+      reasons.push("Gebruikers moeten weten dat ze met een AI-systeem te maken hebben (Artikel 50).");
+    if (transparantie.includes("deepfake") || transparantie.includes("synthetic-content"))
+      reasons.push("Gegenereerde of bewerkte content moet als AI-output worden gemarkeerd (Artikel 50).");
+    if (transparantie.includes("emotion-biometric"))
+      reasons.push("Bij emotieherkenning of biometrische indeling gelden transparantieverplichtingen.");
   }
 
   if (aiLiteracy === "no") {
     score += 2;
-    reasons.push("Medewerkers hebben geen instructies of training ontvangen voor dit systeem.");
+    reasons.push("Medewerkers hebben geen training of instructies ontvangen voor dit systeem (Artikel 4).");
   } else if (aiLiteracy === "partial") {
     score += 1;
-    reasons.push("De AI-geletterdheid van medewerkers is beperkt.");
+    reasons.push("De AI-geletterdheid van medewerkers is beperkt (Artikel 4).");
   }
 
   // ── Categorie bepalen ──
   let category: RiskCategory;
-  if (score >= 9) {
+  if (score >= 6) {
     category = "high";
-  } else if (score >= 4) {
+  } else if (score >= 3) {
     category = "medium";
   } else {
     category = "low";
@@ -157,13 +170,12 @@ export function scoreAssessment(answers: Answers, sector: string): AssessmentRes
 function formatArea(id: string): string {
   const labels: Record<string, string> = {
     biometrics: "biometrie",
+    infrastructure: "kritieke infrastructuur",
     education: "onderwijs",
     employment: "werving en selectie",
-    financial: "financiële diensten",
     "essential-services": "essentiële diensten",
     "law-enforcement": "rechtshandhaving",
     migration: "migratie",
-    infrastructure: "kritieke infrastructuur",
     justice: "rechtspraak",
   };
   return labels[id] ?? id;
@@ -232,7 +244,7 @@ const AI_LITERACY_NEXT_STEPS = [
 
 function buildResult(category: RiskCategory, reasons: string[], aiLiteracy: string): AssessmentResult {
   const copy = RESULT_COPY[category];
-  const uniqueReasons = [...new Set(reasons)].slice(0, 5);
+  const uniqueReasons = [...new Set(reasons)].slice(0, 6);
 
   if (uniqueReasons.length === 0) {
     uniqueReasons.push("Er zijn geen duidelijke hoog-risico indicatoren gevonden.");
