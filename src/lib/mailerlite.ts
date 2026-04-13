@@ -39,24 +39,15 @@ const MAX_CHECKS_IN_EMAIL = 5;
 const FIELD_CHAR_LIMIT = 1024;
 
 function formatSingleCheckAsText(check: CompletedCheck, index: number): string {
-  const reasons = check.result.reasons.map((r) => `• ${r}`).join("\n");
-  const steps = check.result.nextSteps.map((s) => `• ${s}`).join("\n");
+  const reasons = check.result.reasons.map((r) => `• ${r}`).join(" ");
+  const steps = check.result.nextSteps.map((s) => `• ${s}`).join(" ");
 
-  const text = [
-    `CHECK ${index + 1}: ${check.systemName}`,
-    `─────────────────────────────`,
-    `Risiconiveau: ${check.result.badge}`,
-    ``,
-    check.result.headline,
-    ``,
-    check.result.description,
-    ``,
-    `Waarom:`,
-    reasons,
-    ``,
-    `Volgende stappen:`,
-    steps,
-  ].join("\n");
+  const text =
+    `Check ${index + 1}: ${check.systemName} — ${check.result.badge}. ` +
+    `${check.result.headline}. ` +
+    `${check.result.description} ` +
+    `Waarom: ${reasons} ` +
+    `Volgende stappen: ${steps}`;
 
   return text.length <= FIELD_CHAR_LIMIT
     ? text
