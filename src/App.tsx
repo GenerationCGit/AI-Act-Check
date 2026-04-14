@@ -93,7 +93,7 @@ const WORKER_URL = "https://ai-act-check-mailerlite-proxy.nora-f83.workers.dev/"
 async function uploadResultImage(canvas: HTMLCanvasElement): Promise<string | undefined> {
   return new Promise((resolve) => {
     canvas.toBlob(async (blob) => {
-      if (!blob) { resolve(undefined); return; }
+      if (!blob) { console.error("[upload] canvas.toBlob() returned null — canvas mogelijk tainted"); resolve(undefined); return; }
       const formData = new FormData();
       formData.append("file", blob, `result-${Date.now()}.png`);
       try {
