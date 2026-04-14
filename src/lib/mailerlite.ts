@@ -40,22 +40,25 @@ const FIELD_CHAR_LIMIT = 1024;
 
 function formatSingleCheckAsHtml(check: CompletedCheck, index: number): string {
   const reasons = check.result.reasons
-    .map((r) => `<li style="margin-bottom:6px;">${r}</li>`)
+    .slice(0, 3)
+    .map((r) => `<li>${r}</li>`)
     .join("");
   const steps = check.result.nextSteps
-    .map((s) => `<li style="margin-bottom:6px;">${s}</li>`)
+    .slice(0, 3)
+    .map((s) => `<li>${s}</li>`)
     .join("");
+  const desc = check.result.description.slice(0, 200);
 
   return (
-    `<p style="font-family:Arial,sans-serif;font-size:13px;color:#888;margin:0 0 2px;text-transform:uppercase;letter-spacing:1px;">Check ${index + 1}</p>` +
-    `<h2 style="font-family:Arial,sans-serif;font-size:18px;color:#232323;margin:0 0 4px;">${check.systemName}</h2>` +
-    `<p style="font-family:Arial,sans-serif;font-size:14px;color:#232323;margin:0 0 12px;"><strong>Risiconiveau:</strong> ${check.result.badge}</p>` +
-    `<p style="font-family:Arial,sans-serif;font-size:14px;color:#444;line-height:1.6;margin:0 0 16px;">${check.result.description}</p>` +
-    `<p style="font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#232323;margin:0 0 6px;">Waarom deze uitkomst?</p>` +
-    `<ul style="font-family:Arial,sans-serif;font-size:14px;color:#444;line-height:1.6;margin:0 0 16px;padding-left:20px;">${reasons}</ul>` +
-    `<p style="font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#232323;margin:0 0 6px;">Aanbevolen vervolgstappen</p>` +
-    `<ul style="font-family:Arial,sans-serif;font-size:14px;color:#444;line-height:1.6;margin:0 0 32px;padding-left:20px;">${steps}</ul>`
-  );
+    `<p>Check ${index + 1}</p>` +
+    `<h2>${check.systemName}</h2>` +
+    `<p><strong>Risiconiveau:</strong> ${check.result.badge}</p>` +
+    `<p>${desc}</p>` +
+    `<p><strong>Waarom deze uitkomst?</strong></p>` +
+    `<ul>${reasons}</ul>` +
+    `<p><strong>Aanbevolen vervolgstappen</strong></p>` +
+    `<ul>${steps}</ul>`
+  ).slice(0, 1024);
 }
 
 export async function sendResultsToMailerLite(
