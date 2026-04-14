@@ -173,6 +173,7 @@ export default function App() {
     const submission = saveSubmission(state.intakeData);
 
     let imageUrl: string | undefined;
+    console.log("[sendResults] captureEl:", captureEl);
     if (captureEl) {
       try {
         const canvas = await html2canvas(captureEl, { scale: 1.5, useCORS: true, backgroundColor: "#ffffff" });
