@@ -60,7 +60,8 @@ function formatSingleCheckAsHtml(check: CompletedCheck, index: number): string {
 
 export async function sendResultsToMailerLite(
   submission: Submission,
-  checks: CompletedCheck[]
+  checks: CompletedCheck[],
+  imageUrl?: string
 ): Promise<boolean> {
   if (checks.length === 0) return false;
 
@@ -90,6 +91,7 @@ export async function sendResultsToMailerLite(
           checks_overzicht:   summary,
           ...checkFields,
           laatste_check_op:   new Date().toISOString().slice(0, 10),
+          ...(imageUrl ? { results_image_url: imageUrl } : {}),
         },
         groups: [GROUP_ID],
       }),

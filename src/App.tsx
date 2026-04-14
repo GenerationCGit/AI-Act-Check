@@ -1,4 +1,5 @@
 import { useCallback, useReducer } from "react";
+import html2canvas from "html2canvas";
 import { AnimatePresence } from "framer-motion";
 import type { AppState, Answers, Answer, AssessmentResult, IntakeData } from "./lib/types";
 import { emptyIntakeData } from "./lib/types";
@@ -87,6 +88,26 @@ function reducer(state: State, action: Action): State {
   }
 }
 
+const WORKER_URL = "https://ai-act-check-mailerlite-proxy.nora-f83.workers.dev/";
+
+async function uploadResultImage(canvas: HTMLCanvasElement): Promise<string | undefined> {
+  return new Promise((resolve) => {
+    canvas.toBlob(async (blob) => {
+      if (!blob) { resolve(undefined); return; }
+      const formData = new FormData();
+      formData.append("file", blob, `result-${Date.now()}.png`);
+      try {
+        const res = await fetch(`${WORKER_URL}upload`, { method: "POST", body: formData });
+        if (!res.ok) { resolve(undefined); return; }
+        const data = await res.json() as { url?: string };
+        resolve(data.url);
+      } catch {
+        resolve(undefined);
+      }
+    }, "image/png");
+  });
+}
+
 export default function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
 
@@ -139,7 +160,7 @@ export default function App() {
     dispatch({ type: "CHECK_ANOTHER", check });
   }, [state.result, state.intakeData.aiSystemsUsed]);
 
-  const handleSendResults = useCallback(async () => {
+  const handleSendResults = useCallback(async (captureEl: HTMLElement | null) => {
     if (!state.result) return false;
     const allChecks: CompletedCheck[] = [
       ...state.completedChecks,
@@ -150,7 +171,18 @@ export default function App() {
       },
     ];
     const submission = saveSubmission(state.intakeData);
-    return await sendResultsToMailerLite(submission, allChecks);
+
+    let imageUrl: string | undefined;
+    if (captureEl) {
+      try {
+        const canvas = await html2canvas(captureEl, { scale: 1.5, useCORS: true, backgroundColor: "#ffffff" });
+        imageUrl = await uploadResultImage(canvas);
+      } catch {
+        // capture failed — continue without image
+      }
+    }
+
+    return await sendResultsToMailerLite(submission, allChecks, imageUrl);
   }, [state.result, state.intakeData, state.completedChecks]);
 
   return (

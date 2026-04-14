@@ -91,7 +91,7 @@ export function CTASection({
             hover:bg-white hover:text-brand-black transition-all duration-200
             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-yellow focus-visible:ring-offset-2"
         >
-          Helemaal opnieuw beginnen
+          Terug naar de startpagina
         </button>
       </div>
 
