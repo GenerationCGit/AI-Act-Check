@@ -9,7 +9,6 @@ import { DisclaimerFooter } from "./disclaimer-footer";
 interface ResultScreenProps {
   result: AssessmentResult;
   companyName?: string;
-  previousChecksCount: number;
   onRestart: () => void;
   onCheckAnother: () => void;
   onDownloadResults: (captureEl: HTMLElement | null) => Promise<boolean>;
@@ -18,7 +17,6 @@ interface ResultScreenProps {
 export function ResultScreen({
   result,
   companyName,
-  previousChecksCount,
   onRestart,
   onCheckAnother,
   onDownloadResults,
@@ -72,7 +70,6 @@ export function ResultScreen({
           onRestart={onRestart}
           onCheckAnother={onCheckAnother}
           onDownloadResults={() => onDownloadResults(captureRef.current)}
-          previousChecksCount={previousChecksCount}
         />
 
         <DisclaimerFooter />

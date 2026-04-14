@@ -5,7 +5,6 @@ interface CTASectionProps {
   onRestart: () => void;
   onCheckAnother: () => void;
   onDownloadResults: () => Promise<boolean>;
-  previousChecksCount: number;
 }
 
 type DownloadStatus = "idle" | "downloading" | "done" | "error";
@@ -14,7 +13,6 @@ export function CTASection({
   onRestart,
   onCheckAnother,
   onDownloadResults,
-  previousChecksCount,
 }: CTASectionProps) {
   const [status, setStatus] = useState<DownloadStatus>("idle");
 

@@ -199,7 +199,6 @@ export default function App() {
             key="result"
             result={state.result}
             companyName={state.intakeData.companyName}
-            previousChecksCount={state.completedChecks.length}
             onRestart={handleRestart}
             onCheckAnother={handleCheckAnother}
             onDownloadResults={handleDownloadResults}
