@@ -177,8 +177,8 @@ export default function App() {
       try {
         const canvas = await html2canvas(captureEl, { scale: 1.5, useCORS: true, backgroundColor: "#ffffff" });
         imageUrl = await uploadResultImage(canvas);
-      } catch {
-        // capture failed — continue without image
+      } catch (err) {
+        console.error("[html2canvas] capture mislukt:", err);
       }
     }
 
