@@ -101,6 +101,9 @@ export async function sendResultsToMailerLite(
     });
     if (!fieldsResponse.ok) return false;
 
+    // Wait briefly to ensure MailerLite has persisted the fields before the automation fires
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
     // Step 2: add to results group — triggers automation only after fields are saved
     const triggerResponse = await fetch(MAILERLITE_PROXY, {
       method: "POST",
