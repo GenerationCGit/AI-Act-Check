@@ -38,20 +38,24 @@ export async function sendToMailerLite(submission: Submission): Promise<void> {
 const MAX_CHECKS_IN_EMAIL = 5;
 const FIELD_CHAR_LIMIT = 1024;
 
-function formatSingleCheckAsText(check: CompletedCheck, index: number): string {
-  const reasons = check.result.reasons.map((r) => `• ${r}`).join(" ");
-  const steps = check.result.nextSteps.map((s) => `• ${s}`).join(" ");
+function formatSingleCheckAsHtml(check: CompletedCheck, index: number): string {
+  const reasons = check.result.reasons
+    .map((r) => `<li style="margin-bottom:6px;">${r}</li>`)
+    .join("");
+  const steps = check.result.nextSteps
+    .map((s) => `<li style="margin-bottom:6px;">${s}</li>`)
+    .join("");
 
-  const text =
-    `Check ${index + 1}: ${check.systemName} — ${check.result.badge}. ` +
-    `${check.result.headline}. ` +
-    `${check.result.description} ` +
-    `Waarom: ${reasons} ` +
-    `Volgende stappen: ${steps}`;
-
-  return text.length <= FIELD_CHAR_LIMIT
-    ? text
-    : text.slice(0, FIELD_CHAR_LIMIT - 3) + "...";
+  return (
+    `<p style="font-family:Arial,sans-serif;font-size:13px;color:#888;margin:0 0 2px;text-transform:uppercase;letter-spacing:1px;">Check ${index + 1}</p>` +
+    `<h2 style="font-family:Arial,sans-serif;font-size:18px;color:#232323;margin:0 0 4px;">${check.systemName}</h2>` +
+    `<p style="font-family:Arial,sans-serif;font-size:14px;color:#232323;margin:0 0 12px;"><strong>Risiconiveau:</strong> ${check.result.badge}</p>` +
+    `<p style="font-family:Arial,sans-serif;font-size:14px;color:#444;line-height:1.6;margin:0 0 16px;">${check.result.description}</p>` +
+    `<p style="font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#232323;margin:0 0 6px;">Waarom deze uitkomst?</p>` +
+    `<ul style="font-family:Arial,sans-serif;font-size:14px;color:#444;line-height:1.6;margin:0 0 16px;padding-left:20px;">${reasons}</ul>` +
+    `<p style="font-family:Arial,sans-serif;font-size:14px;font-weight:bold;color:#232323;margin:0 0 6px;">Aanbevolen vervolgstappen</p>` +
+    `<ul style="font-family:Arial,sans-serif;font-size:14px;color:#444;line-height:1.6;margin:0 0 32px;padding-left:20px;">${steps}</ul>`
+  );
 }
 
 export async function sendResultsToMailerLite(
@@ -69,7 +73,7 @@ export async function sendResultsToMailerLite(
   const checkFields: Record<string, string> = {};
   for (let i = 0; i < MAX_CHECKS_IN_EMAIL; i++) {
     const check = checks[i];
-    checkFields[`check_${i + 1}_html`] = check ? formatSingleCheckAsText(check, i) : "";
+    checkFields[`check_${i + 1}_html`] = check ? formatSingleCheckAsHtml(check, i) : "";
   }
 
   try {
