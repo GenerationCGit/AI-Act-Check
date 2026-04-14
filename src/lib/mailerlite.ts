@@ -3,7 +3,6 @@ import type { AssessmentResult } from "./types";
 
 const MAILERLITE_PROXY = "https://ai-act-check-mailerlite-proxy.nora-f83.workers.dev/";
 const GROUP_ID = "183640504839178201"; // AI Act Check Leads
-const RESULTS_GROUP_ID = "184264998552340413"; // AI Act Check — Results sent (trigger automation)
 
 export interface CompletedCheck {
   systemName: string;
@@ -63,8 +62,7 @@ function formatSingleCheckAsHtml(check: CompletedCheck, index: number): string {
 
 export async function sendResultsToMailerLite(
   submission: Submission,
-  checks: CompletedCheck[],
-  imageUrl?: string
+  checks: CompletedCheck[]
 ): Promise<boolean> {
   if (checks.length === 0) return false;
 
@@ -94,26 +92,11 @@ export async function sendResultsToMailerLite(
           checks_overzicht:   summary,
           ...checkFields,
           laatste_check_op:   new Date().toISOString().slice(0, 10),
-          ...(imageUrl ? { results_image_url: imageUrl } : {}),
         },
         groups: [GROUP_ID],
       }),
     });
-    if (!fieldsResponse.ok) return false;
-
-    // Wait briefly to ensure MailerLite has persisted the fields before the automation fires
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-
-    // Step 2: add to results group — triggers automation only after fields are saved
-    const triggerResponse = await fetch(MAILERLITE_PROXY, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: submission.email,
-        groups: [RESULTS_GROUP_ID],
-      }),
-    });
-    return triggerResponse.ok;
+    return fieldsResponse.ok;
   } catch (err) {
     console.warn("MailerLite results sync mislukt:", err);
     return false;

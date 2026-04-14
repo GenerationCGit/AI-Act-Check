@@ -6,7 +6,7 @@ import { emptyIntakeData } from "./lib/types";
 import { scoreAssessment } from "./lib/assessment";
 import { saveSubmission } from "./lib/submission-store";
 import { sendToAirtable } from "./lib/airtable";
-import { sendToMailerLite, type CompletedCheck } from "./lib/mailerlite";
+import { sendToMailerLite, sendResultsToMailerLite, type CompletedCheck } from "./lib/mailerlite";
 import { questions } from "./data/questions";
 import { AppShell } from "./components/app-shell";
 import { IntroScreen } from "./components/intro-screen";
@@ -142,18 +142,31 @@ export default function App() {
   }, [state.result, state.intakeData.aiSystemsUsed]);
 
   const handleDownloadResults = useCallback(async (captureEl: HTMLElement | null) => {
-    if (!captureEl) return false;
+    if (!captureEl || !state.result) return false;
     try {
       const canvas = await html2canvas(captureEl, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
       const link = document.createElement("a");
       link.download = `ai-act-check-resultaten.png`;
       link.href = canvas.toDataURL("image/png");
       link.click();
-      return true;
     } catch {
       return false;
     }
-  }, []);
+
+    // Sla resultaten op in MailerLite voor intern gebruik
+    const allChecks: CompletedCheck[] = [
+      ...state.completedChecks,
+      {
+        systemName: state.intakeData.aiSystemsUsed || "AI-systeem",
+        result: state.result,
+        completedAt: new Date().toISOString(),
+      },
+    ];
+    const submission = saveSubmission(state.intakeData);
+    await sendResultsToMailerLite(submission, allChecks);
+
+    return true;
+  }, [state.result, state.intakeData, state.completedChecks]);
 
   return (
     <AppShell appState={state.appState}>
