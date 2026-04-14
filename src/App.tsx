@@ -6,7 +6,7 @@ import { emptyIntakeData } from "./lib/types";
 import { scoreAssessment } from "./lib/assessment";
 import { saveSubmission } from "./lib/submission-store";
 import { sendToAirtable } from "./lib/airtable";
-import { sendToMailerLite, sendResultsToMailerLite, type CompletedCheck } from "./lib/mailerlite";
+import { sendToMailerLite, type CompletedCheck } from "./lib/mailerlite";
 import { questions } from "./data/questions";
 import { AppShell } from "./components/app-shell";
 import { IntroScreen } from "./components/intro-screen";
@@ -88,25 +88,6 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-const WORKER_URL = "https://ai-act-check-mailerlite-proxy.nora-f83.workers.dev/";
-
-async function uploadResultImage(canvas: HTMLCanvasElement): Promise<string | undefined> {
-  return new Promise((resolve) => {
-    canvas.toBlob(async (blob) => {
-      if (!blob) { console.error("[upload] canvas.toBlob() returned null — canvas mogelijk tainted"); resolve(undefined); return; }
-      const formData = new FormData();
-      formData.append("file", blob, `result-${Date.now()}.png`);
-      try {
-        const res = await fetch(`${WORKER_URL}upload`, { method: "POST", body: formData });
-        if (!res.ok) { resolve(undefined); return; }
-        const data = await res.json() as { url?: string };
-        resolve(data.url);
-      } catch {
-        resolve(undefined);
-      }
-    }, "image/png");
-  });
-}
 
 export default function App() {
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -160,31 +141,19 @@ export default function App() {
     dispatch({ type: "CHECK_ANOTHER", check });
   }, [state.result, state.intakeData.aiSystemsUsed]);
 
-  const handleSendResults = useCallback(async (captureEl: HTMLElement | null) => {
-    if (!state.result) return false;
-    const allChecks: CompletedCheck[] = [
-      ...state.completedChecks,
-      {
-        systemName: state.intakeData.aiSystemsUsed || "AI-systeem",
-        result: state.result,
-        completedAt: new Date().toISOString(),
-      },
-    ];
-    const submission = saveSubmission(state.intakeData);
-
-    let imageUrl: string | undefined;
-    console.log("[sendResults] captureEl:", captureEl);
-    if (captureEl) {
-      try {
-        const canvas = await html2canvas(captureEl, { scale: 1.5, useCORS: true, backgroundColor: "#ffffff" });
-        imageUrl = await uploadResultImage(canvas);
-      } catch (err) {
-        console.error("[html2canvas] capture mislukt:", err);
-      }
+  const handleDownloadResults = useCallback(async (captureEl: HTMLElement | null) => {
+    if (!captureEl) return false;
+    try {
+      const canvas = await html2canvas(captureEl, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+      const link = document.createElement("a");
+      link.download = `ai-act-check-resultaten.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+      return true;
+    } catch {
+      return false;
     }
-
-    return await sendResultsToMailerLite(submission, allChecks, imageUrl);
-  }, [state.result, state.intakeData, state.completedChecks]);
+  }, []);
 
   return (
     <AppShell appState={state.appState}>
@@ -220,7 +189,7 @@ export default function App() {
             previousChecksCount={state.completedChecks.length}
             onRestart={handleRestart}
             onCheckAnother={handleCheckAnother}
-            onSendResults={handleSendResults}
+            onDownloadResults={handleDownloadResults}
           />
         )}
       </AnimatePresence>

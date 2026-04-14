@@ -12,7 +12,7 @@ interface ResultScreenProps {
   previousChecksCount: number;
   onRestart: () => void;
   onCheckAnother: () => void;
-  onSendResults: (captureEl: HTMLElement | null) => Promise<boolean>;
+  onDownloadResults: (captureEl: HTMLElement | null) => Promise<boolean>;
 }
 
 export function ResultScreen({
@@ -21,7 +21,7 @@ export function ResultScreen({
   previousChecksCount,
   onRestart,
   onCheckAnother,
-  onSendResults,
+  onDownloadResults,
 }: ResultScreenProps) {
   const captureRef = useRef<HTMLDivElement>(null);
 
@@ -71,7 +71,7 @@ export function ResultScreen({
         <CTASection
           onRestart={onRestart}
           onCheckAnother={onCheckAnother}
-          onSendResults={() => onSendResults(captureRef.current)}
+          onDownloadResults={() => onDownloadResults(captureRef.current)}
           previousChecksCount={previousChecksCount}
         />
 

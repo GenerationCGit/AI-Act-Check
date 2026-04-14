@@ -4,25 +4,24 @@ import { motion } from "framer-motion";
 interface CTASectionProps {
   onRestart: () => void;
   onCheckAnother: () => void;
-  onSendResults: () => Promise<boolean>;
+  onDownloadResults: () => Promise<boolean>;
   previousChecksCount: number;
 }
 
-type SendStatus = "idle" | "sending" | "sent" | "error";
+type DownloadStatus = "idle" | "downloading" | "done" | "error";
 
 export function CTASection({
   onRestart,
   onCheckAnother,
-  onSendResults,
+  onDownloadResults,
   previousChecksCount,
 }: CTASectionProps) {
-  const [status, setStatus] = useState<SendStatus>("idle");
-  const totalChecks = previousChecksCount + 1;
+  const [status, setStatus] = useState<DownloadStatus>("idle");
 
-  async function handleSend() {
-    setStatus("sending");
-    const ok = await onSendResults();
-    setStatus(ok ? "sent" : "error");
+  async function handleDownload() {
+    setStatus("downloading");
+    const ok = await onDownloadResults();
+    setStatus(ok ? "done" : "error");
   }
 
   return (
@@ -57,21 +56,18 @@ export function CTASection({
 
         <button
           type="button"
-          onClick={handleSend}
-          disabled={status === "sending" || status === "sent"}
+          onClick={handleDownload}
+          disabled={status === "downloading"}
           className="inline-flex items-center justify-center px-7 py-3 rounded-xl bg-brand-black text-white font-semibold text-sm
             hover:bg-brand-black/90 active:scale-[0.98] transition-all duration-200
             focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-black focus-visible:ring-offset-2
             shadow-[0_1px_2px_rgba(0,0,0,0.06)]
             disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
         >
-          {status === "sending" && "Versturen..."}
-          {status === "sent" && "✓ Verstuurd naar je inbox"}
+          {status === "downloading" && "Downloaden..."}
+          {status === "done" && "✓ Gedownload"}
           {status === "error" && "Opnieuw proberen"}
-          {status === "idle" &&
-            (totalChecks > 1
-              ? `Stuur mij alle ${totalChecks} resultaten`
-              : "Stuur mij de resultaten")}
+          {status === "idle" && "Download resultaten"}
         </button>
 
         <button
@@ -95,19 +91,9 @@ export function CTASection({
         </button>
       </div>
 
-      {status === "sent" && (
-        <p className="font-sans text-[13px] text-brand-black/55 leading-snug">
-          We hebben een e-mail gestuurd met een overzicht van {totalChecks === 1 ? "deze check" : `alle ${totalChecks} checks`}. Check ook je spamfolder.
-        </p>
-      )}
       {status === "error" && (
         <p className="font-sans text-[13px] text-red-600 leading-snug">
-          Er ging iets mis bij het versturen. Probeer het zo nog eens, of mail ons via info@generation-c.nl.
-        </p>
-      )}
-      {previousChecksCount > 0 && status === "idle" && (
-        <p className="font-sans text-[13px] text-brand-black/55 leading-snug">
-          Je hebt {totalChecks} checks gedaan. Klik op 'Stuur mij alle resultaten' om ze gebundeld in één e-mail te ontvangen.
+          Er ging iets mis. Probeer het opnieuw.
         </p>
       )}
     </motion.div>
