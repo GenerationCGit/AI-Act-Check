@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { cn } from "../lib/utils";
+import { DisclaimerFooter } from "./disclaimer-footer";
 
 interface IntroScreenProps {
   onStart: () => void;
@@ -399,9 +400,7 @@ export function IntroScreen({ onStart }: IntroScreenProps) {
       </motion.div>
 
       {/* ── Footer ── */}
-      <p className="font-mono text-[11px] text-brand-black/35 text-center mt-8">
-        Deze check is een eerste indicatie en vormt geen juridisch advies.
-      </p>
+      <DisclaimerFooter />
     </motion.div>
   );
 }
